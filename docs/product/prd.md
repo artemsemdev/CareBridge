@@ -1,5 +1,3 @@
-# PRD.md
-
 # CareBridge
 ## Product Requirements Document
 ### Cloud-Native Post-Discharge Care Coordination Platform
@@ -8,8 +6,7 @@
 **Product Type:** Public portfolio / reference implementation  
 **Industry:** Healthcare provider operations  
 **Primary Goal:** Demonstrate strong architecture and delivery skills in Azure, Kubernetes, microservices, security, observability, and healthcare interoperability  
-**Author:** Artem portfolio project  
-**Language:** American English
+**Author:** Artem Sem
 
 ---
 
@@ -804,4 +801,3 @@ This should be the standard against which all implementation decisions are measu
 ## 26. Final Product Statement
 
 CareBridge is a cloud-native healthcare operations platform focused on the critical post-discharge window. It combines a realistic provider workflow with a modern Azure and Kubernetes architecture. As a GitHub showcase, it is intended to demonstrate deep practical knowledge in microservices, AKS, Azure services, observability, security, and healthcare-aligned systems design.
-
