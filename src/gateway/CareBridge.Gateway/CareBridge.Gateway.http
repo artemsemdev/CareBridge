@@ -1,0 +1,6 @@
+@CareBridge.Gateway_HostAddress = http://localhost:5169
+
+GET {{CareBridge.Gateway_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

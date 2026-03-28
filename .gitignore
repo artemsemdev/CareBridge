@@ -12,3 +12,22 @@ Thumbs.db
 # IDE settings
 .idea/
 .vscode/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+TestResults/
+
+# Node
+node_modules/
+dist/
+
+# Environment
+.env
+
+# Docker
+docker-compose.override.yml
