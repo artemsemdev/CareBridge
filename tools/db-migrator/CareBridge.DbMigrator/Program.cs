@@ -8,9 +8,20 @@ var configuration = new ConfigurationBuilder()
     .AddEnvironmentVariables()
     .Build();
 
-var migrationTargets = new (string Name, string ConnectionStringKey, Action<DbContextOptionsBuilder> Configure)[]
+var host = configuration["SqlServer:Host"] ?? "localhost,1433";
+var userId = configuration["SqlServer:UserId"] ?? "sa";
+var password = configuration["SQL_SA_PASSWORD"]
+    ?? throw new InvalidOperationException("SQL_SA_PASSWORD environment variable is required. Copy .env.example to .env and source it, or set the variable directly.");
+
+string BuildConnectionString(string database) =>
+    $"Server={host};Database={database};User Id={userId};Password={password};TrustServerCertificate=True";
+
+var databases = configuration.GetSection("Databases").GetChildren()
+    .ToDictionary(c => c.Key, c => c.Value!);
+
+var migrationTargets = new (string Name, string DatabaseKey, Action<DbContextOptionsBuilder> Configure)[]
 {
-    ("Case Service", "CaseDb", opts => opts.UseSqlServer(configuration.GetConnectionString("CaseDb")))
+    ("Case Service", "CaseDb", opts => opts.UseSqlServer(BuildConnectionString(databases["CaseDb"])))
 };
 
 Console.WriteLine("CareBridge Database Migration Runner");
@@ -18,17 +29,11 @@ Console.WriteLine(new string('=', 40));
 
 var hasErrors = false;
 
-foreach (var (name, connKey, configure) in migrationTargets)
+foreach (var (name, dbKey, configure) in migrationTargets)
 {
     Console.WriteLine();
     Console.WriteLine($"[{name}]");
-
-    var connectionString = configuration.GetConnectionString(connKey);
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        Console.WriteLine($"  WARNING: No connection string found for '{connKey}'. Skipping.");
-        continue;
-    }
+    Console.WriteLine($"  Database: {databases[dbKey]}");
 
     try
     {
@@ -36,8 +41,6 @@ foreach (var (name, connKey, configure) in migrationTargets)
         configure(optionsBuilder);
 
         using var context = new CaseDbContext(optionsBuilder.Options);
-
-        Console.WriteLine($"  Database: {context.Database.GetConnectionString()?.Split(';').FirstOrDefault(s => s.TrimStart().StartsWith("Database="))?.Trim() ?? "unknown"}");
 
         await context.Database.EnsureCreatedAsync();
 

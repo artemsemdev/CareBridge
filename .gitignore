@@ -21,6 +21,9 @@ obj/
 *.userprefs
 *.DotSettings.user
 TestResults/
+launchSettings.json
+*.http
+appsettings.Local.json
 
 # Node
 node_modules/
@@ -31,3 +34,9 @@ dist/
 
 # Docker
 docker-compose.override.yml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
