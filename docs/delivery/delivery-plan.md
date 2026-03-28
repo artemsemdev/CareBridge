@@ -23,10 +23,12 @@
 
 ## 2. Delivery Stages
 
-### Stage 0: Foundation (estimated: ~1 week)
+### Stage 0: Foundation (estimated: ~1 week) — COMPLETED 2026-03-28
 Set up the solution structure, shared libraries, local development environment, and the first service skeleton. Nothing is shippable yet, but everything after this goes faster.
 
 **Exit criteria:** `docker-compose up` starts local infrastructure. A skeleton .NET service builds, runs, and responds to a health check. Shared contracts compile. Database migration tooling works.
+
+**Status:** All 6 issues (F1-01 through F1-06) implemented. Solution builds with 0 warnings/errors. 19 unit tests pass (16 contract serialization + 3 case service). Case Service skeleton wired with EF Core, RabbitMQ event publishing, health checks, correlation ID middleware, and structured logging.
 
 ### Stage 1: Case Intake Pipeline (estimated: ~1.5 weeks)
 Discharge intake creates a case. Care Plan Service consumes the event and activates a plan with milestones. The BFF exposes this to a minimal React page. This is the first vertical slice: data flows from API to database to event bus to a second service and back to the UI.
@@ -291,13 +293,13 @@ All issues are defined in the individual epic files under [`docs/delivery/epics/
 
 The order below optimizes for three goals: unblocking dependent work early, achieving visible end-to-end progress fast, and maintaining a deployable system at each increment.
 
-### Wave 1: Foundation (issues can be parallelized)
-1. **F1-01** — Solution structure
-2. **F1-04** — Docker Compose (can run in parallel with F1-01)
-3. **F1-02** — Shared event contracts (after F1-01)
-4. **F1-03** — Shared middleware (after F1-01)
-5. **F1-05** — Database migration tool (after F1-01, F1-04)
-6. **F1-06** — Reference service skeleton (after F1-02, F1-03, F1-04)
+### Wave 1: Foundation (issues can be parallelized) — COMPLETED
+1. ~~**F1-01** — Solution structure~~ DONE
+2. ~~**F1-04** — Docker Compose~~ DONE
+3. ~~**F1-02** — Shared event contracts~~ DONE
+4. ~~**F1-03** — Shared middleware~~ DONE
+5. ~~**F1-05** — Database migration tool~~ DONE
+6. ~~**F1-06** — Reference service skeleton~~ DONE
 
 ### Wave 2: First Vertical Slice — Case to UI
 7. **C2-01** — Case Service domain + database

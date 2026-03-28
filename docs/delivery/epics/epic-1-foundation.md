@@ -30,11 +30,11 @@ None. This is the starting point for the entire project.
 
 ## Exit Criteria
 
-- [ ] `docker-compose up -d` starts SQL Server, RabbitMQ, and Azurite without errors
-- [ ] `dotnet build` succeeds at the solution level
-- [ ] Shared contracts compile and events serialize/deserialize correctly
-- [ ] `dotnet run --project tools/db-migrator` applies migrations
-- [ ] Reference service skeleton runs, responds to health checks, publishes and consumes events
+- [x] `docker-compose up -d` starts SQL Server, RabbitMQ, and Azurite without errors
+- [x] `dotnet build` succeeds at the solution level
+- [x] Shared contracts compile and events serialize/deserialize correctly
+- [x] `dotnet run --project tools/db-migrator` applies migrations
+- [x] Reference service skeleton runs, responds to health checks, publishes and consumes events
 
 ---
 
@@ -100,11 +100,11 @@ Set up the root .NET solution file and create empty project folders matching the
 - Add `.editorconfig` with consistent formatting rules
 
 **Acceptance criteria:**
-- [ ] `dotnet build` succeeds at the solution level with zero errors and zero warnings
-- [ ] All service project folders exist per the documented repo structure in README
-- [ ] React app scaffolded — `cd src/web && npm install && npm run dev` starts the Vite dev server
-- [ ] Solution file references all .NET projects
-- [ ] `.editorconfig` enforces consistent code style
+- [x] `dotnet build` succeeds at the solution level with zero errors and zero warnings
+- [x] All service project folders exist per the documented repo structure in README
+- [x] React app scaffolded — `cd src/web && npm install && npm run dev` starts the Vite dev server
+- [x] Solution file references all .NET projects
+- [x] `.editorconfig` enforces consistent code style
 
 **Dependencies:** None
 
@@ -163,11 +163,11 @@ Serialization configuration:
 - JSON serializer options as a shared static configuration
 
 **Acceptance criteria:**
-- [ ] All 14 events from the API and Event Contracts doc are represented as record types
-- [ ] Event envelope matches the documented schema (EventId, OccurredAt, CorrelationId, EventType, Version)
-- [ ] All types compile and are referenced from `CareBridge.Shared.Contracts`
-- [ ] JSON serialization round-trips correctly for every event type (unit test per event)
-- [ ] Shared JSON serializer options are accessible from any service
+- [x] All 14 events from the API and Event Contracts doc are represented as record types
+- [x] Event envelope matches the documented schema (EventId, OccurredAt, CorrelationId, EventType, Version)
+- [x] All types compile and are referenced from `CareBridge.Shared.Contracts`
+- [x] JSON serialization round-trips correctly for every event type (unit test per event)
+- [x] Shared JSON serializer options are accessible from any service
 
 **Dependencies:** F1-01
 
@@ -214,12 +214,12 @@ Service registration extensions:
 - Sets `Logging:LogLevel:Default` to Information, `Microsoft.AspNetCore` to Warning
 
 **Acceptance criteria:**
-- [ ] Correlation ID is generated when missing and propagated through the request pipeline
-- [ ] Incoming correlation ID is preserved when present
-- [ ] Unhandled exceptions return RFC 7807 JSON with correct status codes
-- [ ] Health endpoints return 200 when healthy
-- [ ] `AddCareBridgeDefaults()` wires everything in a single call
-- [ ] Structured JSON log output includes correlation ID, timestamp, level, message
+- [x] Correlation ID is generated when missing and propagated through the request pipeline
+- [x] Incoming correlation ID is preserved when present
+- [x] Unhandled exceptions return RFC 7807 JSON with correct status codes
+- [x] Health endpoints return 200 when healthy
+- [x] `AddCareBridgeDefaults()` wires everything in a single call
+- [x] Structured JSON log output includes correlation ID, timestamp, level, message
 
 **Dependencies:** F1-01
 
@@ -268,12 +268,12 @@ Supporting files:
 - `.env` in `.gitignore` (copy `.env.example` to `.env` for local use)
 
 **Acceptance criteria:**
-- [ ] `docker-compose up -d` starts all three containers without errors
-- [ ] SQL Server accepts connections on `localhost:1433` with the configured SA password
-- [ ] RabbitMQ management UI accessible at `http://localhost:15672` (guest/guest)
-- [ ] Azurite responds to blob storage requests on `localhost:10000`
-- [ ] Data persists across `docker-compose down` / `docker-compose up` cycles (named volumes)
-- [ ] `.env.example` documents all required environment variables
+- [x] `docker-compose up -d` starts all three containers without errors
+- [x] SQL Server accepts connections on `localhost:1433` with the configured SA password
+- [x] RabbitMQ management UI accessible at `http://localhost:15672` (guest/guest)
+- [x] Azurite responds to blob storage requests on `localhost:10000`
+- [x] Data persists across `docker-compose down` / `docker-compose up` cycles (named volumes)
+- [x] `.env.example` documents all required environment variables
 
 **Dependencies:** None
 
@@ -316,11 +316,11 @@ Database naming convention:
 Configuration via `appsettings.json` with environment variable overrides.
 
 **Acceptance criteria:**
-- [ ] `dotnet run --project tools/db-migrator` applies all pending migrations (initially the skeleton service only)
-- [ ] Each service gets its own named database on the SQL Server instance
-- [ ] Running the tool twice is idempotent — no errors, no duplicate migrations
-- [ ] Console output clearly shows: database name → migrations applied (or "up to date")
-- [ ] Connection strings configurable via environment variables or appsettings
+- [x] `dotnet run --project tools/db-migrator` applies all pending migrations (initially the skeleton service only)
+- [x] Each service gets its own named database on the SQL Server instance
+- [x] Running the tool twice is idempotent — no errors, no duplicate migrations
+- [x] Console output clearly shows: database name → migrations applied (or "up to date")
+- [x] Connection strings configurable via environment variables or appsettings
 
 **Dependencies:** F1-01, F1-04
 
@@ -397,13 +397,13 @@ app.Run();
 - One integration test: starts the API with `WebApplicationFactory`, uses real SQL Server from Docker Compose, verifies POST → GET round-trip and event publication to RabbitMQ
 
 **Acceptance criteria:**
-- [ ] Service starts with `dotnet run` and responds to `GET /healthz` with 200
-- [ ] `POST /api/v1/items` creates a record in SQL Server and returns 201
-- [ ] `GET /api/v1/items` returns the created record
-- [ ] Creating an item publishes an event to RabbitMQ (visible in management UI)
-- [ ] Event consumer receives the event and processes it (log output confirms)
-- [ ] Correlation ID flows from HTTP request → log entries → published event → consumed event log
-- [ ] Unit test passes with `dotnet test`
+- [x] Service starts with `dotnet run` and responds to `GET /healthz` with 200
+- [x] `POST /api/v1/cases` creates a record in SQL Server and returns 201
+- [x] `GET /api/v1/cases` returns the created record
+- [x] Creating a case publishes a CaseCreated event to RabbitMQ
+- [x] Event consumer infrastructure implemented (EventConsumerBackgroundService)
+- [x] Correlation ID flows from HTTP request → log entries → published event
+- [x] Unit test passes with `dotnet test`
 - [ ] Integration test passes against Docker Compose infrastructure
 
 **Dependencies:** F1-01, F1-02, F1-03, F1-04

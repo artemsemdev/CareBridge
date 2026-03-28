@@ -12,3 +12,31 @@ Thumbs.db
 # IDE settings
 .idea/
 .vscode/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.DotSettings.user
+TestResults/
+launchSettings.json
+*.http
+appsettings.Local.json
+
+# Node
+node_modules/
+dist/
+
+# Environment
+.env
+
+# Docker
+docker-compose.override.yml
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
