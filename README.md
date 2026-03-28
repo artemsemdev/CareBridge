@@ -139,7 +139,7 @@ dotnet run --project tools/synthetic-data-generator
 dotnet run --project src/gateway
 
 # Start the frontend
-cd src/web && npm install && npm run dev
+cd src/web/carebridge-ui && npm install && npm run dev
 ```
 
 See [Local Development Guide](docs/developer/local-development.md) for detailed setup instructions.
@@ -182,7 +182,8 @@ carebridge/
 │   │   ├── notification-service/
 │   │   ├── audit-service/
 │   │   └── reporting-service/
-│   ├── web/                   # React frontend
+│   ├── web/
+│   │   └── carebridge-ui/     # React frontend
 │   └── shared/                # Shared contracts, middleware, OTEL config
 ├── tests/
 │   ├── unit/
@@ -196,6 +197,8 @@ carebridge/
 │   ├── synthetic-data-generator/
 │   └── scenario-runner/
 └── .github/
+    ├── ISSUE_TEMPLATE/        # Structured issue intake for bugs and feature requests
+    ├── pull_request_template.md
     └── workflows/             # CI/CD pipeline definitions
 ```
 
@@ -241,6 +244,14 @@ carebridge/
 
 ### Product Requirements
 - [Product Requirements Document](docs/product/prd.md)
+
+### Community Standards
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Security Policy](SECURITY.md)
+- [Issue Templates](.github/ISSUE_TEMPLATE/)
+- [Pull Request Template](.github/pull_request_template.md)
+- [License](LICENSE)
 
 ---
 

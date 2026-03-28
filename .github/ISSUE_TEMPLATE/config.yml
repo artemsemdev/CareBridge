@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security policy
+    url: https://github.com/artemsemdev/CareBridge/security/policy
+    about: Use private reporting for vulnerabilities and exposed secrets.
+  - name: Project documentation
+    url: https://github.com/artemsemdev/CareBridge#documentation-map
+    about: Check the README and documentation map before opening a docs or setup question.

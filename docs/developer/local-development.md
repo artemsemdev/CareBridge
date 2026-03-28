@@ -34,7 +34,8 @@ carebridge/
 │   │   ├── notification-service/
 │   │   ├── audit-service/
 │   │   └── reporting-service/
-│   ├── web/                   # React frontend
+│   ├── web/
+│   │   └── carebridge-ui/     # React frontend
 │   └── shared/                # Shared contracts and middleware
 ├── tests/
 ├── infra/terraform/
@@ -100,7 +101,7 @@ dotnet run --project src/services/case-service
 | Notification Service | 5070 | http://localhost:5070 |
 | Audit Service | 5080 | http://localhost:5080 |
 | Reporting Service | 5090 | http://localhost:5090 |
-| React Frontend | 3000 | http://localhost:3000 |
+| React Frontend | 5173 | http://localhost:5173 |
 
 ---
 
@@ -138,14 +139,14 @@ Services use the **adapter pattern** for cloud dependencies. In development mode
 ## Frontend Development
 
 ```bash
-cd src/web
+cd src/web/carebridge-ui
 npm install
 npm run dev
 ```
 
-- **Vite dev server** with hot reload at http://localhost:3000.
-- API calls are proxied to the BFF at http://localhost:5000 via Vite proxy config.
-- **Auth in dev mode:** Uses a mock auth provider that simulates JWT tokens with configurable roles. No Entra ID setup needed for local development.
+- **Vite dev server** runs with hot reload at http://localhost:5173 by default.
+- The current frontend scaffold does not define a Vite API proxy. If local API forwarding is needed, add the proxy settings in `vite.config.ts`.
+- Frontend validation is currently `npm run lint` and `npm run build`; there is no `npm test` script yet.
 
 ---
 
@@ -177,18 +178,14 @@ The scenario runner submits data through the API and waits for each stage to com
 ## Running Tests
 
 ```bash
-# Unit tests (no dependencies required)
-dotnet test tests/unit/
+# Run the current .NET test projects in the solution
+dotnet test CareBridge.sln
 
-# Integration tests (requires docker-compose dependencies)
-docker-compose up -d
-dotnet test tests/integration/
-
-# Contract tests (validates API and event schemas)
-dotnet test tests/contract/
-
-# Frontend tests
-cd src/web && npm test
+# Frontend validation
+cd src/web/carebridge-ui
+npm install
+npm run lint
+npm run build
 ```
 
 ---
@@ -201,7 +198,7 @@ cd src/web && npm test
 | Port conflict on 1433 | Stop local SQL Server instance, or change docker-compose port mapping |
 | RabbitMQ connection refused | Wait 10-15 seconds after `docker-compose up` for RabbitMQ to initialize |
 | Migration fails | Ensure SQL container is healthy: `docker-compose ps` |
-| Frontend can't reach API | Ensure BFF is running on port 5000. Check Vite proxy config in `vite.config.ts`. |
+| Frontend can't reach API | Ensure the BFF is running on port 5000. Configure an API base URL in the app or add a Vite proxy in `vite.config.ts` if local forwarding is required. |
 | Service Bus messages not processing | Check RabbitMQ management UI at http://localhost:15672 (guest/guest) |
 
 ---

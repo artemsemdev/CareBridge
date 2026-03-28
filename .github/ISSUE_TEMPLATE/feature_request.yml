@@ -1,0 +1,85 @@
+name: Feature request
+description: Propose an improvement that fits the project's scope and architecture.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for scoped improvements. For vulnerabilities, follow the security policy instead of opening an issue.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project would this change affect?
+      options:
+        - Gateway / API
+        - Backend service
+        - Frontend
+        - Infrastructure / deployment
+        - Tooling / developer experience
+        - Documentation
+        - Cross-cutting architecture
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are you trying to solve?
+      placeholder: Describe the current limitation or gap.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should the project do instead?
+      placeholder: Describe the desired behavior or capability.
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why this fits CareBridge
+      description: Explain how this request supports the repository's goals and architecture.
+      placeholder: Explain why this belongs in this project instead of a separate experiment.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: List alternatives, workarounds, or reasons to not make this change.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What would make this request complete?
+      placeholder: |
+        - ...
+        - ...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and pull requests before opening this request.
+          required: true
+        - label: This request stays within the project's synthetic-data-only and public-reference scope.
+          required: true
+        - label: I understand that maintainers may ask for an issue discussion before implementation starts.
+          required: true
