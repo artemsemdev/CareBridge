@@ -1,6 +1,0 @@
-@CareBridge.ObservationService_HostAddress = http://localhost:5227
-
-GET {{CareBridge.ObservationService_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
