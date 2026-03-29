@@ -30,10 +30,12 @@ Set up the solution structure, shared libraries, local development environment, 
 
 **Status:** All 6 issues (F1-01 through F1-06) implemented. Solution builds with 0 warnings/errors. 19 unit tests pass (16 contract serialization + 3 case service). Case Service skeleton wired with EF Core, RabbitMQ event publishing, health checks, correlation ID middleware, and structured logging.
 
-### Stage 1: Case Intake Pipeline (estimated: ~1.5 weeks)
+### Stage 1: Case Intake Pipeline (estimated: ~1.5 weeks) — COMPLETED 2026-03-29
 Discharge intake creates a case. Care Plan Service consumes the event and activates a plan with milestones. The BFF exposes this to a minimal React page. This is the first vertical slice: data flows from API to database to event bus to a second service and back to the UI.
 
 **Exit criteria:** POST a synthetic discharge bundle via the BFF. Case appears in the database. CaseCreated event fires. Care Plan Service receives it, instantiates a plan with milestones. React page lists cases and shows case detail with care plan.
+
+**Status:** All 9 issues (C2-01 through C2-09) implemented. Case Service updated with string PatientId, cursor-based pagination, PATCH status endpoint, and best-effort CaseUpdated event publishing. Care Plan Service implemented with EF Core domain model, "General Post-Discharge" template (5 milestones), idempotent CaseCreated handler, and REST API. API Gateway implemented with named HttpClients, CorrelationIdForwardingHandler, mock auth middleware, and 502/504 error handling. db-migrator extended for carebridge-careplan-db. React frontend built with Tailwind CSS, React Router, React Query, application shell, case list page, and case detail page with care plan view. .NET solution builds clean, 19 unit tests pass, frontend TypeScript compiles.
 
 ### Stage 2: Monitoring and Alerting Loop (estimated: ~1.5 weeks)
 Observations flow in and get evaluated. Abnormal readings and missed milestones generate alerts. This closes the core detection loop.
@@ -301,18 +303,18 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 5. ~~**F1-05** — Database migration tool~~ DONE
 6. ~~**F1-06** — Reference service skeleton~~ DONE
 
-### Wave 2: First Vertical Slice — Case to UI
-7. **C2-01** — Case Service domain + database
-8. **C2-02** — Case Service REST API
-9. **C2-03** — Case Service event publishing
-10. **C2-04** — Care Plan Service domain + database
-11. **C2-05** — Care plan activation (event-driven)
-12. **C2-06** — Care Plan Service REST API
-13. **C2-07** — BFF proxy endpoints
-14. **C2-08** — React app shell + case list
-15. **C2-09** — React case detail + care plan view
+### Wave 2: First Vertical Slice — Case to UI — COMPLETED 2026-03-29
+7. ~~**C2-01** — Case Service domain + database~~ DONE
+8. ~~**C2-02** — Case Service REST API~~ DONE
+9. ~~**C2-03** — Case Service event publishing~~ DONE
+10. ~~**C2-04** — Care Plan Service domain + database~~ DONE
+11. ~~**C2-05** — Care plan activation (event-driven)~~ DONE
+12. ~~**C2-06** — Care Plan Service REST API~~ DONE
+13. ~~**C2-07** — BFF proxy endpoints~~ DONE
+14. ~~**C2-08** — React app shell + case list~~ DONE
+15. ~~**C2-09** — React case detail + care plan view~~ DONE
 
-**Milestone: First demo — discharge creates case, care plan activates, visible in browser.**
+**Milestone: First demo — discharge creates case, care plan activates, visible in browser. ✓ ACHIEVED**
 
 ### Wave 3: Clinical Value Loop
 16. **M3-01** — Observation Service domain + database
@@ -420,8 +422,8 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 
 | Milestone | Target | Description |
 |-----------|--------|-------------|
-| **v0.1 — Foundation** | Wave 1 complete | Solution structure, local dev, shared libs |
-| **v0.2 — Case Pipeline** | Wave 2 complete | First vertical slice: discharge → case → care plan → UI |
+| **v0.1 — Foundation** | Wave 1 complete ✓ | Solution structure, local dev, shared libs |
+| **v0.2 — Case Pipeline** | Wave 2 complete ✓ | First vertical slice: discharge → case → care plan → UI |
 | **v0.3 — Monitoring Loop** | Wave 3 complete | Observations → alerts → UI |
 | **v0.4 — Operational Workflows** | Wave 4 complete | Tasks + appointments + notifications |
 | **v0.5 — Dashboard & Audit** | Wave 5 complete | CQRS proven, full UI |
