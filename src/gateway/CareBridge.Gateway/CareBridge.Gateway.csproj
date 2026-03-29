@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\shared\CareBridge.Shared.Infrastructure\CareBridge.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

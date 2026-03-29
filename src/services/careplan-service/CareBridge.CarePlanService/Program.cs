@@ -1,34 +1,154 @@
+using CareBridge.CarePlanService.Data;
+using CareBridge.CarePlanService.Entities;
+using CareBridge.CarePlanService.Handlers;
+using CareBridge.Shared.Contracts.Enums;
+using CareBridge.Shared.Contracts.Events;
+using CareBridge.Shared.Infrastructure.Eventing;
+using CareBridge.Shared.Infrastructure.Extensions;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.AddCareBridgeDefaults();
+
+builder.Services.AddDbContext<CarePlanDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("CarePlanDb")));
+
+builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
+builder.Services.AddScoped<CaseCreatedHandler>();
+
+builder.Services.AddSingleton(new EventConsumerOptions
+{
+    QueueName = "careplan-service",
+    RoutingKeys = [nameof(CaseCreated)],
+    EventTypeMap = new Dictionary<string, Type>
+    {
+        [nameof(CaseCreated)] = typeof(CaseCreated)
+    }
+});
+builder.Services.AddScoped<IEventHandler<CaseCreated>, CaseCreatedHandler>();
+builder.Services.AddHostedService<EventConsumerBackgroundService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseCareBridgeDefaults();
+app.MapCareBridgeHealthChecks();
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+// GET /api/v1/care-plans?caseId={caseId}
+app.MapGet("/api/v1/care-plans", async (Guid? caseId, CarePlanDbContext db) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    if (caseId is null)
+        return Results.Problem("caseId query parameter is required.", statusCode: 400, title: "Validation Error");
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    var plan = await db.CarePlans.Include(p => p.Milestones)
+        .FirstOrDefaultAsync(p => p.CaseId == caseId.Value);
+
+    return plan is null ? Results.NotFound() : Results.Ok(ToResponse(plan));
 });
+
+// GET /api/v1/care-plans/{planId}
+app.MapGet("/api/v1/care-plans/{planId:guid}", async (Guid planId, CarePlanDbContext db) =>
+{
+    var plan = await db.CarePlans.Include(p => p.Milestones)
+        .FirstOrDefaultAsync(p => p.Id == planId);
+
+    return plan is null ? Results.NotFound() : Results.Ok(ToResponse(plan));
+});
+
+// PATCH /api/v1/care-plans/{planId}/milestones/{milestoneId}
+app.MapMethods("/api/v1/care-plans/{planId:guid}/milestones/{milestoneId:guid}", ["PATCH"],
+    async (Guid planId, Guid milestoneId, UpdateMilestoneRequest request, CarePlanDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
+    {
+        var plan = await db.CarePlans.Include(p => p.Milestones)
+            .FirstOrDefaultAsync(p => p.Id == planId);
+        if (plan is null) return Results.NotFound();
+
+        var milestone = plan.Milestones.FirstOrDefault(m => m.Id == milestoneId);
+        if (milestone is null) return Results.NotFound();
+
+        if (milestone.Status != MilestoneStatus.Pending)
+            return Results.Problem($"Cannot transition milestone from {milestone.Status}.", statusCode: 409, title: "Conflict");
+
+        if (request.Status != MilestoneStatus.Completed && request.Status != MilestoneStatus.Skipped)
+            return Results.Problem("Status must be Completed or Skipped.", statusCode: 400, title: "Validation Error");
+
+        milestone.Status = request.Status;
+        if (request.Status == MilestoneStatus.Completed)
+            milestone.CompletedAt = DateTimeOffset.UtcNow;
+
+        if (plan.Milestones.All(m => m.Status is MilestoneStatus.Completed or MilestoneStatus.Skipped))
+        {
+            plan.Status = CarePlanStatus.Completed;
+            plan.CompletedAt = DateTimeOffset.UtcNow;
+        }
+
+        await db.SaveChangesAsync();
+
+        if (request.Status == MilestoneStatus.Completed)
+        {
+            try
+            {
+                await publisher.PublishAsync(new MilestoneCompleted
+                {
+                    MilestoneId = milestone.Id,
+                    CarePlanId = plan.Id,
+                    CaseId = plan.CaseId,
+                    MilestoneName = milestone.Name,
+                    CompletedAt = milestone.CompletedAt!.Value
+                });
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to publish MilestoneCompleted event for milestone {MilestoneId}.", milestone.Id);
+            }
+        }
+
+        return Results.Ok(ToMilestoneResponse(milestone));
+    });
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+static CarePlanResponse ToResponse(CarePlanEntity plan)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    var now = DateTimeOffset.UtcNow;
+    var milestones = plan.Milestones.OrderBy(m => m.DueAt).Select(m => ToMilestoneResponse(m)).ToList();
+    var completed = milestones.Count(m => m.Status == nameof(MilestoneStatus.Completed));
+    var total = milestones.Count;
+    return new CarePlanResponse(
+        plan.Id, plan.CaseId, plan.TemplateName,
+        plan.Status.ToString(), plan.ActivatedAt, plan.CompletedAt,
+        milestones,
+        new ProgressSummary(completed, total, total == 0 ? 0 : (int)Math.Round(completed * 100.0 / total)));
 }
+
+static MilestoneResponse ToMilestoneResponse(MilestoneEntity m)
+{
+    var now = DateTimeOffset.UtcNow;
+    return new MilestoneResponse(
+        m.Id, m.Name, m.Description, m.DueAt,
+        m.Status.ToString(), m.CompletedAt,
+        m.Status == MilestoneStatus.Pending && m.DueAt < now);
+}
+
+record UpdateMilestoneRequest(MilestoneStatus Status);
+
+record MilestoneResponse(
+    Guid Id,
+    string Name,
+    string Description,
+    DateTimeOffset DueAt,
+    string Status,
+    DateTimeOffset? CompletedAt,
+    bool IsOverdue);
+
+record ProgressSummary(int Completed, int Total, int PercentComplete);
+
+record CarePlanResponse(
+    Guid Id,
+    Guid CaseId,
+    string TemplateName,
+    string Status,
+    DateTimeOffset ActivatedAt,
+    DateTimeOffset? CompletedAt,
+    List<MilestoneResponse> Milestones,
+    ProgressSummary Progress);

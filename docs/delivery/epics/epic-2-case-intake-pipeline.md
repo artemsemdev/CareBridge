@@ -29,12 +29,12 @@ A discharge event creates a case and automatically triggers a care plan with tra
 
 ## Exit Criteria
 
-- [ ] POST a discharge payload via the BFF → case created in Case Service database
-- [ ] CaseCreated event fires on RabbitMQ
-- [ ] Care Plan Service consumes the event, instantiates a plan with 5 milestones
-- [ ] CarePlanActivated event fires
-- [ ] React case list page displays all cases
-- [ ] React case detail page shows patient info, care plan, and milestone progress
+- [x] POST a discharge payload via the BFF → case created in Case Service database
+- [x] CaseCreated event fires on RabbitMQ
+- [x] Care Plan Service consumes the event, instantiates a plan with 5 milestones
+- [x] CarePlanActivated event fires
+- [x] React case list page displays all cases
+- [x] React case detail page shows patient info, care plan, and milestone progress
 
 ---
 
@@ -115,10 +115,10 @@ EF Core setup:
 Register `CaseDbContext` in the db-migrator tool.
 
 **Acceptance criteria:**
-- [ ] Migration runs via db-migrator and creates `carebridge-case-db` with `Cases` table
-- [ ] Case entity can be persisted and retrieved via EF Core
-- [ ] All three indexes are applied
-- [ ] `CaseStatus` enum stored as string in the database
+- [x] Migration runs via db-migrator and creates `carebridge-case-db` with `Cases` table
+- [x] Case entity can be persisted and retrieved via EF Core
+- [x] All three indexes are applied
+- [x] `CaseStatus` enum stored as string in the database
 
 **Dependencies:** F1-05, F1-06
 
@@ -179,12 +179,12 @@ Cursor-based pagination:
 - Sort by CreatedAt descending
 
 **Acceptance criteria:**
-- [ ] POST `/api/v1/cases` creates a case and returns 201 with Location header
-- [ ] GET `/api/v1/cases` returns paginated cases with cursor navigation
-- [ ] GET `/api/v1/cases/{caseId}` returns case detail or 404
-- [ ] PATCH `/api/v1/cases/{caseId}/status` updates status and returns 200
-- [ ] Invalid input returns 400 with RFC 7807 body
-- [ ] All responses use `application/json` content type
+- [x] POST `/api/v1/cases` creates a case and returns 201 with Location header
+- [x] GET `/api/v1/cases` returns paginated cases with cursor navigation
+- [x] GET `/api/v1/cases/{caseId}` returns case detail or 404
+- [x] PATCH `/api/v1/cases/{caseId}/status` updates status and returns 200
+- [x] Invalid input returns 400 with RFC 7807 body
+- [x] All responses use `application/json` content type
 
 **Dependencies:** C2-01
 
@@ -210,12 +210,12 @@ After a case is created or updated, publish domain events to RabbitMQ using the 
 - Events published after the database transaction commits (not inside the transaction)
 
 **Acceptance criteria:**
-- [ ] Creating a case publishes a `CaseCreated` event to RabbitMQ
-- [ ] Updating case status publishes a `CaseUpdated` event
-- [ ] Events contain: caseId, patientId, patientName, diagnosisCode, diagnosisDescription, dischargeDate, status, timestamps
-- [ ] Correlation ID is present in the event envelope
-- [ ] Events visible in RabbitMQ management UI under the `carebridge.events` exchange
-- [ ] If event publishing fails, the case is still created (publish is best-effort, not transactional)
+- [x] Creating a case publishes a `CaseCreated` event to RabbitMQ
+- [x] Updating case status publishes a `CaseUpdated` event
+- [x] Events contain: caseId, patientId, patientName, diagnosisCode, diagnosisDescription, dischargeDate, status, timestamps
+- [x] Correlation ID is present in the event envelope
+- [x] Events visible in RabbitMQ management UI under the `carebridge.events` exchange
+- [x] If event publishing fails, the case is still created (publish is best-effort, not transactional)
 
 **Dependencies:** C2-02, F1-02
 
@@ -286,11 +286,11 @@ EF Core setup:
 - Register in db-migrator
 
 **Acceptance criteria:**
-- [ ] Migration creates `carebridge-careplan-db` with `CarePlans` and `Milestones` tables
-- [ ] "General Post-Discharge" template is defined in code configuration
-- [ ] CarePlan and Milestones can be persisted and retrieved with navigation properties
-- [ ] DueAt is calculated correctly from ActivatedAt + DueWithinHours
-- [ ] Unique index on CaseId prevents duplicate plans per case
+- [x] Migration creates `carebridge-careplan-db` with `CarePlans` and `Milestones` tables
+- [x] "General Post-Discharge" template is defined in code configuration
+- [x] CarePlan and Milestones can be persisted and retrieved with navigation properties
+- [x] DueAt is calculated correctly from ActivatedAt + DueWithinHours
+- [x] Unique index on CaseId prevents duplicate plans per case
 
 **Dependencies:** F1-05, F1-06
 
@@ -316,12 +316,12 @@ Care Plan Service subscribes to `CaseCreated` events and automatically instantia
 - If a care plan already exists for this CaseId, log and skip (idempotent)
 
 **Acceptance criteria:**
-- [ ] Creating a case via Case Service API triggers care plan creation in Care Plan Service
-- [ ] CarePlan has 5 milestones matching the "General Post-Discharge" template
-- [ ] Milestones have correct DueAt values (ActivatedAt + DueWithinHours)
-- [ ] `CarePlanActivated` event is published with plan ID, case ID, template name, milestone count
-- [ ] Processing the same CaseCreated event twice does not create a second care plan
-- [ ] Correlation ID from the original request flows through to the CarePlanActivated event
+- [x] Creating a case via Case Service API triggers care plan creation in Care Plan Service
+- [x] CarePlan has 5 milestones matching the "General Post-Discharge" template
+- [x] Milestones have correct DueAt values (ActivatedAt + DueWithinHours)
+- [x] `CarePlanActivated` event is published with plan ID, case ID, template name, milestone count
+- [x] Processing the same CaseCreated event twice does not create a second care plan
+- [x] Correlation ID from the original request flows through to the CarePlanActivated event
 
 **Dependencies:** C2-03, C2-04
 
@@ -367,13 +367,13 @@ Milestone update:
 - Check if all milestones are completed — if so, set CarePlan status to Completed
 
 **Acceptance criteria:**
-- [ ] GET by caseId returns the care plan with all milestones including progress summary
-- [ ] GET by planId returns the same with milestones
-- [ ] PATCH updates milestone status and returns updated milestone
-- [ ] `MilestoneCompleted` event published when milestone is marked completed
-- [ ] Care plan auto-completes when all milestones are completed
-- [ ] Invalid transitions return 409 Conflict
-- [ ] 404 for nonexistent plans or milestones
+- [x] GET by caseId returns the care plan with all milestones including progress summary
+- [x] GET by planId returns the same with milestones
+- [x] PATCH updates milestone status and returns updated milestone
+- [x] `MilestoneCompleted` event published when milestone is marked completed
+- [x] Care plan auto-completes when all milestones are completed
+- [x] Invalid transitions return 409 Conflict
+- [x] 404 for nonexistent plans or milestones
 
 **Dependencies:** C2-04, C2-05
 
@@ -424,11 +424,11 @@ Error handling:
 - If a downstream service is unreachable, return 502 Bad Gateway with Problem Details
 
 **Acceptance criteria:**
-- [ ] All proxy endpoints forward requests and return responses correctly
-- [ ] Correlation ID is forwarded to downstream services
-- [ ] Mock auth middleware creates a valid claims principal
-- [ ] Downstream timeout returns 504 Gateway Timeout
-- [ ] Downstream connection failure returns 502 Bad Gateway with Problem Details body
+- [x] All proxy endpoints forward requests and return responses correctly
+- [x] Correlation ID is forwarded to downstream services
+- [x] Mock auth middleware creates a valid claims principal
+- [x] Downstream timeout returns 504 Gateway Timeout
+- [x] Downstream connection failure returns 502 Bad Gateway with Problem Details body
 
 **Dependencies:** C2-02, C2-06
 
@@ -474,14 +474,14 @@ Case list page:
 - Error state: retry button
 
 **Acceptance criteria:**
-- [ ] `npm run dev` starts the frontend on `http://localhost:3000`
-- [ ] Application shell renders with sidebar navigation and header
-- [ ] Case list page fetches and displays cases from the BFF
-- [ ] Each case row shows patient name, status badge, discharge date, diagnosis
-- [ ] Clicking a case row navigates to `/cases/{caseId}`
-- [ ] Empty state shown when no cases exist
-- [ ] Loading skeleton shown during fetch
-- [ ] API error shows retry option
+- [x] `npm run dev` starts the frontend on `http://localhost:3000`
+- [x] Application shell renders with sidebar navigation and header
+- [x] Case list page fetches and displays cases from the BFF
+- [x] Each case row shows patient name, status badge, discharge date, diagnosis
+- [x] Clicking a case row navigates to `/cases/{caseId}`
+- [x] Empty state shown when no cases exist
+- [x] Loading skeleton shown during fetch
+- [x] API error shows retry option
 
 **Dependencies:** C2-07
 
@@ -534,14 +534,14 @@ Page at route `/cases/:caseId`:
 - Both must resolve before rendering content
 
 **Acceptance criteria:**
-- [ ] Page loads case data and care plan from BFF
-- [ ] Patient info card displays all fields correctly
-- [ ] Care plan progress bar shows correct completion percentage
-- [ ] Milestones displayed with correct status indicators
-- [ ] Overdue milestones (pending + past due) highlighted in warning color
-- [ ] Placeholder sections visible for future features
-- [ ] Back navigation returns to case list
-- [ ] 404 page shown for nonexistent case IDs
-- [ ] Loading states for both data fetches
+- [x] Page loads case data and care plan from BFF
+- [x] Patient info card displays all fields correctly
+- [x] Care plan progress bar shows correct completion percentage
+- [x] Milestones displayed with correct status indicators
+- [x] Overdue milestones (pending + past due) highlighted in warning color
+- [x] Placeholder sections visible for future features
+- [x] Back navigation returns to case list
+- [x] 404 page shown for nonexistent case IDs
+- [x] Loading states for both data fetches
 
 **Dependencies:** C2-08

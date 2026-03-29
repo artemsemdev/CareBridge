@@ -1,4 +1,5 @@
 using CareBridge.CaseService.Data;
+using CareBridge.CarePlanService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -19,9 +20,22 @@ string BuildConnectionString(string database) =>
 var databases = configuration.GetSection("Databases").GetChildren()
     .ToDictionary(c => c.Key, c => c.Value!);
 
-var migrationTargets = new (string Name, string DatabaseKey, Action<DbContextOptionsBuilder> Configure)[]
+var migrationTargets = new (string Name, string DatabaseKey, Func<DbContext> CreateContext)[]
 {
-    ("Case Service", "CaseDb", opts => opts.UseSqlServer(BuildConnectionString(databases["CaseDb"])))
+    ("Case Service", "CaseDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<CaseDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["CaseDb"]))
+            .Options;
+        return new CaseDbContext(opts);
+    }),
+    ("Care Plan Service", "CarePlanDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<CarePlanDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["CarePlanDb"]))
+            .Options;
+        return new CarePlanDbContext(opts);
+    })
 };
 
 Console.WriteLine("CareBridge Database Migration Runner");
@@ -29,7 +43,7 @@ Console.WriteLine(new string('=', 40));
 
 var hasErrors = false;
 
-foreach (var (name, dbKey, configure) in migrationTargets)
+foreach (var (name, dbKey, createContext) in migrationTargets)
 {
     Console.WriteLine();
     Console.WriteLine($"[{name}]");
@@ -37,10 +51,7 @@ foreach (var (name, dbKey, configure) in migrationTargets)
 
     try
     {
-        var optionsBuilder = new DbContextOptionsBuilder<CaseDbContext>();
-        configure(optionsBuilder);
-
-        using var context = new CaseDbContext(optionsBuilder.Options);
+        using var context = createContext();
 
         await context.Database.EnsureCreatedAsync();
 

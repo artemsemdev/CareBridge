@@ -17,12 +17,14 @@ public class CaseDbContext : DbContext
         {
             entity.ToTable("Cases");
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.PatientId).HasMaxLength(50).IsRequired();
             entity.Property(e => e.PatientName).HasMaxLength(200).IsRequired();
             entity.Property(e => e.DiagnosisCode).HasMaxLength(20).IsRequired();
             entity.Property(e => e.DiagnosisDescription).HasMaxLength(500).IsRequired();
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(50);
-            entity.HasIndex(e => e.PatientId);
-            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.PatientId).HasDatabaseName("IX_Cases_PatientId");
+            entity.HasIndex(e => e.Status).HasDatabaseName("IX_Cases_Status");
+            entity.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_Cases_CreatedAt");
         });
     }
 }

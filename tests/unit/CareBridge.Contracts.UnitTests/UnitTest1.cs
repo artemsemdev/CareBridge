@@ -13,7 +13,7 @@ public class EventSerializationTests
         var evt = new CaseCreated
         {
             CaseId = Guid.NewGuid(),
-            PatientId = Guid.NewGuid(),
+            PatientId = "P-" + Guid.NewGuid().ToString("N")[..8],
             PatientName = "John Doe",
             DiagnosisCode = "I50.9",
             DiagnosisDescription = "Heart failure, unspecified",
@@ -205,7 +205,7 @@ public class EventSerializationTests
         var evt = new CaseCreated
         {
             CaseId = Guid.NewGuid(),
-            PatientId = Guid.NewGuid(),
+            PatientId = "P-" + Guid.NewGuid().ToString("N")[..8],
             PatientName = "Test",
             DiagnosisCode = "J18.9",
             DiagnosisDescription = "Pneumonia",
