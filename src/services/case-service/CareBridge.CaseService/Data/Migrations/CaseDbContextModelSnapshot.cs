@@ -44,8 +44,10 @@ namespace CareBridge.CaseService.Data.Migrations
                     b.Property<DateTimeOffset>("DischargeDate")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<Guid>("PatientId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PatientId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PatientName")
                         .IsRequired()
@@ -62,9 +64,14 @@ namespace CareBridge.CaseService.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PatientId");
+                    b.HasIndex("PatientId")
+                        .HasDatabaseName("IX_Cases_PatientId");
 
-                    b.HasIndex("Status");
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Cases_Status");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_Cases_CreatedAt");
 
                     b.ToTable("Cases", (string)null);
                 });

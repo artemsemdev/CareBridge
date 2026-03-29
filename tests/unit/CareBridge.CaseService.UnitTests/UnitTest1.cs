@@ -23,7 +23,7 @@ public class CaseDbContextTests
         var caseEntity = new CaseEntity
         {
             Id = Guid.NewGuid(),
-            PatientId = Guid.NewGuid(),
+            PatientId = "P-" + Guid.NewGuid().ToString("N")[..8],
             PatientName = "Jane Smith",
             DiagnosisCode = "I50.9",
             DiagnosisDescription = "Heart failure",
@@ -48,8 +48,8 @@ public class CaseDbContextTests
         using var context = CreateInMemoryContext();
 
         context.Cases.AddRange(
-            new CaseEntity { Id = Guid.NewGuid(), PatientId = Guid.NewGuid(), PatientName = "Patient A", DiagnosisCode = "J18.9", DiagnosisDescription = "Pneumonia", DischargeDate = DateTimeOffset.UtcNow, Status = CaseStatus.Active, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow },
-            new CaseEntity { Id = Guid.NewGuid(), PatientId = Guid.NewGuid(), PatientName = "Patient B", DiagnosisCode = "I50.9", DiagnosisDescription = "Heart failure", DischargeDate = DateTimeOffset.UtcNow, Status = CaseStatus.Monitoring, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow }
+            new CaseEntity { Id = Guid.NewGuid(), PatientId = "P-" + Guid.NewGuid().ToString("N")[..8], PatientName = "Patient A", DiagnosisCode = "J18.9", DiagnosisDescription = "Pneumonia", DischargeDate = DateTimeOffset.UtcNow, Status = CaseStatus.Active, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow },
+            new CaseEntity { Id = Guid.NewGuid(), PatientId = "P-" + Guid.NewGuid().ToString("N")[..8], PatientName = "Patient B", DiagnosisCode = "I50.9", DiagnosisDescription = "Heart failure", DischargeDate = DateTimeOffset.UtcNow, Status = CaseStatus.Monitoring, CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow }
         );
         await context.SaveChangesAsync();
 
@@ -65,7 +65,7 @@ public class CaseDbContextTests
         var caseEntity = new CaseEntity
         {
             Id = Guid.NewGuid(),
-            PatientId = Guid.NewGuid(),
+            PatientId = "P-" + Guid.NewGuid().ToString("N")[..8],
             PatientName = "Test Patient",
             DiagnosisCode = "J18.9",
             DiagnosisDescription = "Pneumonia",

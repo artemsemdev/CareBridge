@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\case-service\CareBridge.CaseService\CareBridge.CaseService.csproj" />
+    <ProjectReference Include="..\..\..\src\services\careplan-service\CareBridge.CarePlanService\CareBridge.CarePlanService.csproj" />
   </ItemGroup>
 
 </Project>
