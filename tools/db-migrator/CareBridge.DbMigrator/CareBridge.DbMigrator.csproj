@@ -17,6 +17,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\services\case-service\CareBridge.CaseService\CareBridge.CaseService.csproj" />
     <ProjectReference Include="..\..\..\src\services\careplan-service\CareBridge.CarePlanService\CareBridge.CarePlanService.csproj" />
+    <ProjectReference Include="..\..\..\src\services\observation-service\CareBridge.ObservationService\CareBridge.ObservationService.csproj" />
+    <ProjectReference Include="..\..\..\src\services\caregap-engine\CareBridge.CareGapEngine\CareBridge.CareGapEngine.csproj" />
   </ItemGroup>
 
 </Project>

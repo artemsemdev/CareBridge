@@ -24,13 +24,31 @@ TestResults/
 launchSettings.json
 *.http
 appsettings.Local.json
+appsettings.Development.Local.json
+
+# .NET test coverage
+coverage/
+coverage-report/
+*.coverage
+*.coveragexml
+*.cobertura.xml
+lcov.info
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
 
 # Node
 node_modules/
 dist/
+dist-ssr/
+*.local
 
 # Environment
 .env
+.env.local
+.env.*.local
 
 # Docker
 docker-compose.override.yml

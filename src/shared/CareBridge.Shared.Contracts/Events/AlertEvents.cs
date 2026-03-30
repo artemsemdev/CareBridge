@@ -8,7 +8,9 @@ public sealed record AlertRaised : IntegrationEvent
     public required Guid CaseId { get; init; }
     public required AlertType AlertType { get; init; }
     public required Severity Severity { get; init; }
+    public required string Title { get; init; }
     public required string Description { get; init; }
+    public Guid? SourceEventId { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
 }
 

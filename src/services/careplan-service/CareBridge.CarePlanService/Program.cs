@@ -34,16 +34,26 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// GET /api/v1/care-plans?caseId={caseId}
-app.MapGet("/api/v1/care-plans", async (Guid? caseId, CarePlanDbContext db) =>
+// GET /api/v1/care-plans?caseId={caseId}  — returns single plan for a case
+// GET /api/v1/care-plans?status={status}  — returns list of plans with that status (used by Care-Gap Engine milestone scanner)
+app.MapGet("/api/v1/care-plans", async (Guid? caseId, string? status, CarePlanDbContext db) =>
 {
-    if (caseId is null)
-        return Results.Problem("caseId query parameter is required.", statusCode: 400, title: "Validation Error");
+    if (caseId is not null)
+    {
+        var plan = await db.CarePlans.Include(p => p.Milestones)
+            .FirstOrDefaultAsync(p => p.CaseId == caseId.Value);
+        return plan is null ? Results.NotFound() : Results.Ok(ToResponse(plan));
+    }
 
-    var plan = await db.CarePlans.Include(p => p.Milestones)
-        .FirstOrDefaultAsync(p => p.CaseId == caseId.Value);
+    if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<CarePlanStatus>(status, true, out var parsedStatus))
+    {
+        var plans = await db.CarePlans.Include(p => p.Milestones)
+            .Where(p => p.Status == parsedStatus)
+            .ToListAsync();
+        return Results.Ok(plans.Select(ToResponse).ToList());
+    }
 
-    return plan is null ? Results.NotFound() : Results.Ok(ToResponse(plan));
+    return Results.Problem("Either caseId or status query parameter is required.", statusCode: 400, title: "Validation Error");
 });
 
 // GET /api/v1/care-plans/{planId}

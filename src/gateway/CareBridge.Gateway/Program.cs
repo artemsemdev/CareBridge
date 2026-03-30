@@ -12,6 +12,8 @@ builder.AddCareBridgeDefaults();
 var services = builder.Configuration.GetSection("Services");
 var caseServiceUrl = services["CaseService"] ?? "http://localhost:5010";
 var carePlanServiceUrl = services["CarePlanService"] ?? "http://localhost:5020";
+var observationServiceUrl = services["ObservationService"] ?? "http://localhost:5030";
+var careGapEngineUrl = services["CareGapEngine"] ?? "http://localhost:5040";
 
 builder.Services.AddHttpClient("CaseService", client =>
 {
@@ -22,6 +24,18 @@ builder.Services.AddHttpClient("CaseService", client =>
 builder.Services.AddHttpClient("CarePlanService", client =>
 {
     client.BaseAddress = new Uri(carePlanServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("ObservationService", client =>
+{
+    client.BaseAddress = new Uri(observationServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("CareGapEngine", client =>
+{
+    client.BaseAddress = new Uri(careGapEngineUrl);
     client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
 
@@ -80,9 +94,58 @@ app.MapGet("/api/cases/{caseId:guid}", async (Guid caseId, HttpContext ctx, IHtt
 app.MapGet("/api/cases/{caseId:guid}/care-plan", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
     await ProxyAsync(ctx, factory, "CarePlanService", HttpMethod.Get, $"/api/v1/care-plans?caseId={caseId}"));
 
+// GET /api/cases/{caseId}/observations → Observation Service GET /api/v1/observations?caseId={caseId}
+app.MapGet("/api/cases/{caseId:guid}/observations", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    var separator = string.IsNullOrEmpty(qs) ? "?" : qs + "&";
+    return await ProxyAsync(ctx, factory, "ObservationService", HttpMethod.Get,
+        $"/api/v1/observations?caseId={caseId}{(string.IsNullOrEmpty(qs) ? "" : "&" + qs.TrimStart('?'))}");
+});
+
+// POST /api/cases/{caseId}/observations → Observation Service POST /api/v1/observations (forward Idempotency-Key)
+app.MapPost("/api/cases/{caseId:guid}/observations", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "ObservationService", HttpMethod.Post, "/api/v1/observations",
+        forwardHeaders: ["Idempotency-Key"]));
+
+// GET /api/cases/{caseId}/alerts → Care-Gap Engine GET /api/v1/alerts?caseId={caseId}
+app.MapGet("/api/cases/{caseId:guid}/alerts", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Get,
+        $"/api/v1/alerts?caseId={caseId}{(string.IsNullOrEmpty(qs) ? "" : "&" + qs.TrimStart('?'))}");
+});
+
+// GET /api/alerts → Care-Gap Engine GET /api/v1/alerts
+app.MapGet("/api/alerts", async (HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Get, $"/api/v1/alerts{qs}");
+});
+
+// GET /api/alerts/{alertId} → Care-Gap Engine GET /api/v1/alerts/{alertId}
+app.MapGet("/api/alerts/{alertId:guid}", async (Guid alertId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Get, $"/api/v1/alerts/{alertId}"));
+
+// PATCH /api/alerts/{alertId}/acknowledge → Care-Gap Engine PATCH /api/v1/alerts/{alertId}/acknowledge
+app.MapMethods("/api/alerts/{alertId:guid}/acknowledge", ["PATCH"],
+    async (Guid alertId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Patch, $"/api/v1/alerts/{alertId}/acknowledge"));
+
+// PATCH /api/alerts/{alertId}/resolve → Care-Gap Engine PATCH /api/v1/alerts/{alertId}/resolve
+app.MapMethods("/api/alerts/{alertId:guid}/resolve", ["PATCH"],
+    async (Guid alertId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Patch, $"/api/v1/alerts/{alertId}/resolve"));
+
 app.Run();
 
-static async Task<IResult> ProxyAsync(HttpContext ctx, IHttpClientFactory factory, string clientName, HttpMethod method, string path)
+static async Task<IResult> ProxyAsync(
+    HttpContext ctx,
+    IHttpClientFactory factory,
+    string clientName,
+    HttpMethod method,
+    string path,
+    string[]? forwardHeaders = null)
 {
     var client = factory.CreateClient(clientName);
 
@@ -94,6 +157,15 @@ static async Task<IResult> ProxyAsync(HttpContext ctx, IHttpClientFactory factor
         requestMessage.Content = new StreamContent(ctx.Request.Body);
         if (ctx.Request.ContentType != null)
             requestMessage.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(ctx.Request.ContentType);
+    }
+
+    if (forwardHeaders is not null)
+    {
+        foreach (var headerName in forwardHeaders)
+        {
+            if (ctx.Request.Headers.TryGetValue(headerName, out var headerValue))
+                requestMessage.Headers.TryAddWithoutValidation(headerName, (IEnumerable<string?>)headerValue);
+        }
     }
 
     HttpResponseMessage response;
