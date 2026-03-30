@@ -8,6 +8,25 @@ CareBridge is a reference implementation of a healthcare operations platform bui
 
 ---
 
+## Current Status
+
+**v0.4 — Operational Workflows** (completed 2026-03-31)
+
+The system currently implements the first four stages of the delivery plan:
+
+| Stage | What's Working |
+|---|---|
+| **Foundation** | Solution structure, shared contracts/middleware, Docker Compose (SQL Server + RabbitMQ + Azurite), EF Core database migration tooling |
+| **Case Intake** | Case Service (CRUD + events), Care Plan Service (event-driven activation with 5 milestones), API Gateway/BFF, React case list + case detail pages |
+| **Monitoring & Alerting** | Observation Service (ingestion + validation + dedup), Care-Gap Engine (threshold evaluation + milestone scanning), alert lifecycle API, observations + alerts in React UI |
+| **Coordinator Workflows** | Task Service (CRUD + alert-to-task automation + state transitions), Appointment Service (full lifecycle), Notification Service (event-driven log-based delivery), task completion → milestone update, appointment completion → milestone update, React task management + appointment management |
+
+**69 automated tests pass** (contract serialization, threshold evaluation, task/appointment state transitions). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
+
+Services not yet implemented: Reporting Service, Audit Service, cloud deployment, synthetic data generator.
+
+---
+
 ## Why This Project Exists
 
 Most portfolio projects in healthcare either stay too shallow (a CRUD patient list) or become unrealistically broad (a full EHR). CareBridge focuses on **one strong operational workflow** — post-discharge care coordination — and implements it with the kind of architecture, security posture, and operational maturity expected in enterprise healthcare systems.

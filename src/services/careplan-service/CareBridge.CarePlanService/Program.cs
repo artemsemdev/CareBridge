@@ -16,17 +16,30 @@ builder.Services.AddDbContext<CarePlanDbContext>(options =>
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 builder.Services.AddScoped<CaseCreatedHandler>();
+builder.Services.AddScoped<TaskCompletedHandler>();
+builder.Services.AddScoped<AppointmentCompletedHandler>();
+
+var careGapEngineUrl = builder.Configuration["Services:CareGapEngine"] ?? "http://localhost:5040";
+builder.Services.AddHttpClient("CareGapEngine", client =>
+{
+    client.BaseAddress = new Uri(careGapEngineUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 builder.Services.AddSingleton(new EventConsumerOptions
 {
     QueueName = "careplan-service",
-    RoutingKeys = [nameof(CaseCreated)],
+    RoutingKeys = [nameof(CaseCreated), nameof(TaskCompleted), nameof(AppointmentCompleted)],
     EventTypeMap = new Dictionary<string, Type>
     {
-        [nameof(CaseCreated)] = typeof(CaseCreated)
+        [nameof(CaseCreated)] = typeof(CaseCreated),
+        [nameof(TaskCompleted)] = typeof(TaskCompleted),
+        [nameof(AppointmentCompleted)] = typeof(AppointmentCompleted)
     }
 });
 builder.Services.AddScoped<IEventHandler<CaseCreated>, CaseCreatedHandler>();
+builder.Services.AddScoped<IEventHandler<TaskCompleted>, TaskCompletedHandler>();
+builder.Services.AddScoped<IEventHandler<AppointmentCompleted>, AppointmentCompletedHandler>();
 builder.Services.AddHostedService<EventConsumerBackgroundService>();
 
 var app = builder.Build();

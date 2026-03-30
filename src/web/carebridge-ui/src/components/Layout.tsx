@@ -6,12 +6,27 @@ function AlertBadge() {
   const { data } = useQuery({
     queryKey: ['open-alert-count'],
     queryFn: () => api.getAlerts({ status: 'Open' }),
-    refetchInterval: 30_000, // poll every 30s
+    refetchInterval: 30_000,
   });
   const count = data?.items.length ?? 0;
   if (count === 0) return null;
   return (
     <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-red-500 text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  );
+}
+
+function TaskBadge() {
+  const { data } = useQuery({
+    queryKey: ['open-task-count'],
+    queryFn: () => api.getTasks({ status: 'Open' }),
+    refetchInterval: 30_000,
+  });
+  const count = data?.items.length ?? 0;
+  if (count === 0) return null;
+  return (
+    <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold rounded-full bg-blue-500 text-white">
       {count > 99 ? '99+' : count}
     </span>
   );
@@ -61,12 +76,13 @@ export function Layout() {
           <NavLink
             to="/tasks"
             className={({ isActive }) =>
-              `block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              `flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               }`
             }
           >
             Tasks
+            <TaskBadge />
           </NavLink>
           <NavLink
             to="/audit"

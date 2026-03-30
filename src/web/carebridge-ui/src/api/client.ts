@@ -1,9 +1,22 @@
-import type { CaseResponse, CarePlanResponse, PaginatedResponse, ObservationResponse, AlertResponse } from './types';
+import type {
+  CaseResponse, CarePlanResponse, PaginatedResponse, ObservationResponse, AlertResponse,
+  TaskResponse, CreateTaskRequest, AppointmentResponse, CreateAppointmentRequest,
+} from './types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise<T>;
+}
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json() as Promise<T>;
 }
@@ -62,4 +75,30 @@ export const api = {
 
   resolveAlert: (alertId: string, actor?: string) =>
     patch<AlertResponse>(`/api/alerts/${alertId}/resolve`, { actor: actor ?? 'care-coordinator' }),
+
+  // Tasks
+  getTasks: (params?: { status?: string; priority?: string; caseId?: string; limit?: number; cursor?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set('status', params.status);
+    if (params?.priority) qs.set('priority', params.priority);
+    if (params?.caseId) qs.set('caseId', params.caseId);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.cursor) qs.set('cursor', params.cursor);
+    const query = qs.toString() ? `?${qs}` : '';
+    return get<PaginatedResponse<TaskResponse>>(`/api/tasks${query}`);
+  },
+  getCaseTasks: (caseId: string) =>
+    get<PaginatedResponse<TaskResponse>>(`/api/cases/${caseId}/tasks`),
+  createTask: (data: CreateTaskRequest) =>
+    post<TaskResponse>('/api/tasks', data),
+  updateTask: (taskId: string, body: { status?: string; assignedTo?: string; priority?: string; completedBy?: string }) =>
+    patch<TaskResponse>(`/api/tasks/${taskId}`, body),
+
+  // Appointments
+  getCaseAppointments: (caseId: string) =>
+    get<PaginatedResponse<AppointmentResponse>>(`/api/cases/${caseId}/appointments`),
+  createAppointment: (data: CreateAppointmentRequest) =>
+    post<AppointmentResponse>('/api/appointments', data),
+  updateAppointment: (id: string, body: { status?: string; notes?: string }) =>
+    patch<AppointmentResponse>(`/api/appointments/${id}`, body),
 };
