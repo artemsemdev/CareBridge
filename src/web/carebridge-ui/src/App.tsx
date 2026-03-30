@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { DashboardPage } from './pages/DashboardPage'
 import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
+import { AlertsPage } from './pages/AlertsPage'
 
 function NotFoundPage() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route index element={<DashboardPage />} />
         <Route path="cases" element={<CasesPage />} />
         <Route path="cases/:caseId" element={<CaseDetailPage />} />
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

@@ -87,7 +87,9 @@ public class EventSerializationTests
             CaseId = Guid.NewGuid(),
             AlertType = AlertType.AbnormalReading,
             Severity = Severity.High,
+            Title = "High BP Reading",
             Description = "Blood pressure critically elevated",
+            SourceEventId = Guid.NewGuid(),
             CreatedAt = DateTimeOffset.UtcNow
         };
         AssertRoundTrip(evt);
@@ -228,6 +230,7 @@ public class EventSerializationTests
             CaseId = Guid.NewGuid(),
             AlertType = AlertType.AbnormalReading,
             Severity = Severity.Critical,
+            Title = "Critical Reading",
             Description = "Test",
             CreatedAt = DateTimeOffset.UtcNow
         };

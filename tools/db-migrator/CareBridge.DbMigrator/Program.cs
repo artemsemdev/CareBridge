@@ -1,5 +1,7 @@
 using CareBridge.CaseService.Data;
 using CareBridge.CarePlanService.Data;
+using CareBridge.ObservationService.Data;
+using CareBridge.CareGapEngine.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -35,6 +37,20 @@ var migrationTargets = new (string Name, string DatabaseKey, Func<DbContext> Cre
             .UseSqlServer(BuildConnectionString(databases["CarePlanDb"]))
             .Options;
         return new CarePlanDbContext(opts);
+    }),
+    ("Observation Service", "ObservationDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<ObservationDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["ObservationDb"]))
+            .Options;
+        return new ObservationDbContext(opts);
+    }),
+    ("Care-Gap Engine", "CareGapDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<CareGapDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["CareGapDb"]))
+            .Options;
+        return new CareGapDbContext(opts);
     })
 };
 
@@ -52,8 +68,6 @@ foreach (var (name, dbKey, createContext) in migrationTargets)
     try
     {
         using var context = createContext();
-
-        await context.Database.EnsureCreatedAsync();
 
         var pending = (await context.Database.GetPendingMigrationsAsync()).ToList();
         if (pending.Count > 0)
