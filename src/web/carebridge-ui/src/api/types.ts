@@ -79,3 +79,56 @@ export interface AlertResponse {
   resolvedBy: string | null;
   age: string;
 }
+
+// Task types
+export type TaskStatus = 'Open' | 'InProgress' | 'Completed' | 'Deferred';
+export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+
+export interface TaskResponse {
+  id: string;
+  caseId: string;
+  alertId: string | null;
+  title: string;
+  description: string;
+  assignedTo: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  completedBy: string | null;
+  age: string;
+}
+
+export interface CreateTaskRequest {
+  caseId: string;
+  title: string;
+  description: string;
+  priority?: TaskPriority;
+  assignedTo?: string;
+}
+
+// Appointment types
+export type AppointmentStatus = 'Proposed' | 'Booked' | 'Completed' | 'Canceled' | 'NoShow';
+export type AppointmentType = 'FollowUp' | 'LabWork' | 'Specialist';
+
+export interface AppointmentResponse {
+  id: string;
+  caseId: string;
+  type: string;
+  scheduledAt: string;
+  status: AppointmentStatus;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  isOverdue: boolean;
+}
+
+export interface CreateAppointmentRequest {
+  caseId: string;
+  type?: AppointmentType;
+  scheduledAt: string;
+  status?: AppointmentStatus;
+  notes?: string;
+}

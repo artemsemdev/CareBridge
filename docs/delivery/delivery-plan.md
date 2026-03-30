@@ -44,10 +44,12 @@ Observations flow in and get evaluated. Abnormal readings and missed milestones 
 
 **Status:** All 7 issues (M3-01 through M3-07) implemented. Observation Service wired with EF Core, idempotency-key dedup, value/unit validation per type, cursor-based pagination, and ObservationReceived event publishing. Care-Gap Engine implemented with threshold evaluation (ThresholdEvaluator static class — all types except weight change which is deferred), ObservationReceived event handler, MilestoneScanBackgroundService (configurable interval, dedup by SourceEventId), and full alert CRUD + acknowledge/resolve lifecycle API. AlertStatus enum and Title/SourceEventId fields added to shared contracts. Care Plan Service extended to support status-based list query for milestone scanner. DB migrator extended for carebridge-observation-db and carebridge-caregap-db. Gateway extended with ObservationService and CareGapEngine HTTP clients and 6 new BFF proxy endpoints. React frontend updated with ObservationResponse and AlertResponse types, real observation/alert display replacing placeholder cards, AlertsPage with severity/type filters, and open-alert count badge in sidebar navigation. 38 unit tests pass (16 contract + 3 case service + 19 threshold evaluation). Weight-change detection deferred (requires history comparison — documented in epic).
 
-### Stage 3: Coordinator Workflows (estimated: ~1.5 weeks)
+### Stage 3: Coordinator Workflows (estimated: ~1.5 weeks) — COMPLETED 2026-03-31
 Alerts automatically create tasks. Coordinators manage tasks and schedule appointments. Completing a task or appointment can satisfy a care plan milestone. Notifications are logged (no real delivery channels yet).
 
 **Exit criteria:** Alert generates a task automatically. Task lifecycle works (open, in-progress, completed). Appointments can be created and tracked. Completing relevant work updates milestone status. Notifications appear in the log.
+
+**Status:** All 8 issues (W4-01 through W4-08) implemented. Task Service wired with EF Core, AlertRaised event handler for automatic task creation, severity-to-priority mapping, idempotent one-task-per-alert via unique filtered index, CRUD/list/filter/pagination endpoints, valid state transitions (Open→InProgress→Completed/Deferred), CompletedAt/CompletedBy handling, and TaskCreated/TaskCompleted event publishing. Appointment Service implemented with full lifecycle (Proposed→Booked→Completed/Canceled/NoShow), AppointmentBooked/AppointmentCompleted/AppointmentMissed events, and overdue detection. Notification Service consumes AlertRaised (Critical/High→Email+InApp, Medium→InApp), AppointmentBooked (InApp), AppointmentMissed (Email+InApp), and MilestoneCompleted (InApp), persists notifications, logs full content at Information level, and publishes NotificationSent events. Care Plan Service extended with TaskCompleted handler (looks up alert via CareGap Engine API, completes MissedMilestone milestones) and AppointmentCompleted handler (completes Follow-Up Appointment milestone). Gateway extended with TaskService and AppointmentService HTTP clients and 7 new BFF proxy endpoints. React frontend updated with TaskResponse/AppointmentResponse types, Tasks page with status/priority filters and create task modal, task section on case detail page with inline create form and status action buttons, appointments section on case detail page with create form and action buttons, overdue booked appointment highlighting, and open-task count badge in sidebar navigation. DB migrator extended for carebridge-task-db, carebridge-appointment-db, and carebridge-notification-db. 69 unit tests pass (18 contract serialization + 3 case service + 19 threshold evaluation + 18 task service + 11 appointment service).
 
 ### Stage 4: Dashboard, Timeline, and Reporting (estimated: ~1.5 weeks)
 Reporting Service consumes all domain events and builds denormalized read models. The operational dashboard and case timeline come to life. This is where the CQRS pattern pays off.
@@ -329,17 +331,17 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 
 **Milestone: Full detection loop — observations in, alerts out, visible in UI.**
 
-### Wave 4: Operational Workflows
-23. **W4-01** — Task Service domain + database
-24. **W4-02** — Task Service REST API
-25. **W4-03** — Automatic task creation from alerts
-26. **W4-04** — Task completion → milestone update
-27. **W4-05** — Appointment Service (full)
-28. **W4-06** — Notification Service (log-based)
-29. **W4-07** — React task management UI
-30. **W4-08** — React appointment UI
+### Wave 4: Operational Workflows — COMPLETED 2026-03-31
+23. ~~**W4-01** — Task Service domain + database~~ DONE
+24. ~~**W4-02** — Task Service REST API~~ DONE
+25. ~~**W4-03** — Automatic task creation from alerts~~ DONE
+26. ~~**W4-04** — Task completion → milestone update~~ DONE
+27. ~~**W4-05** — Appointment Service (full)~~ DONE
+28. ~~**W4-06** — Notification Service (log-based)~~ DONE
+29. ~~**W4-07** — React task management UI~~ DONE
+30. ~~**W4-08** — React appointment UI~~ DONE
 
-**Milestone: Full operational loop — alert → task → resolution → milestone completion.**
+**Milestone: Full operational loop — alert → task → resolution → milestone completion. ✓ ACHIEVED**
 
 ### Wave 5: Dashboard, Timeline, and Audit
 31. **D5-01** — Reporting Service event consumers
@@ -427,7 +429,7 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 | **v0.1 — Foundation** | Wave 1 complete ✓ | Solution structure, local dev, shared libs |
 | **v0.2 — Case Pipeline** | Wave 2 complete ✓ | First vertical slice: discharge → case → care plan → UI |
 | **v0.3 — Monitoring Loop** | Wave 3 complete | Observations → alerts → UI |
-| **v0.4 — Operational Workflows** | Wave 4 complete | Tasks + appointments + notifications |
+| **v0.4 — Operational Workflows** | Wave 4 complete ✓ | Tasks + appointments + notifications |
 | **v0.5 — Dashboard & Audit** | Wave 5 complete | CQRS proven, full UI |
 | **v0.6 — Hardened** | Wave 6 complete | Observability + resilience |
 | **v0.7 — Cloud-Deployed** | Wave 7 complete | Running on Azure |

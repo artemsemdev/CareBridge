@@ -32,13 +32,13 @@ The full operational loop closes. Detection leads to action, and action is track
 
 ## Exit Criteria
 
-- [ ] AlertRaised event automatically creates a task with appropriate priority
-- [ ] Task lifecycle works: Open → InProgress → Completed/Deferred
-- [ ] Completing a relevant task marks the corresponding care plan milestone as completed
-- [ ] Appointments can be created, tracked, and completed
-- [ ] Completing an appointment satisfies the follow-up appointment milestone
-- [ ] Notifications generated for key events and stored/logged
-- [ ] Task and appointment management UI works in the React frontend
+- [x] AlertRaised event automatically creates a task with appropriate priority
+- [x] Task lifecycle works: Open → InProgress → Completed/Deferred
+- [x] Completing a relevant task marks the corresponding care plan milestone as completed
+- [x] Appointments can be created, tracked, and completed
+- [x] Completing an appointment satisfies the follow-up appointment milestone
+- [x] Notifications generated for key events and stored/logged
+- [x] Task and appointment management UI works in the React frontend
 
 ---
 
@@ -118,10 +118,10 @@ EF Core setup:
 - Register in db-migrator
 
 **Acceptance criteria:**
-- [ ] Migration creates `carebridge-task-db` with `CareTasks` table
-- [ ] All status and priority values stored as strings
-- [ ] Indexes in place for case, status, assignee, and alert queries
-- [ ] Unique filtered index on AlertId prevents duplicate tasks per alert
+- [x] Migration creates `carebridge-task-db` with `CareTasks` table
+- [x] All status and priority values stored as strings
+- [x] Indexes in place for case, status, assignee, and alert queries
+- [x] Unique filtered index on AlertId prevents duplicate tasks per alert
 
 **Dependencies:** F1-05, F1-06
 
@@ -180,14 +180,14 @@ Events:
 - `TaskCompleted` published when status changes to Completed (includes taskId, caseId, completedBy)
 
 **Acceptance criteria:**
-- [ ] POST creates a task and returns 201
-- [ ] GET list supports filtering by case, status, priority, and assignee (individually and combined)
-- [ ] PATCH updates status and/or assignment
-- [ ] Invalid state transitions return 409 Conflict
-- [ ] Cannot modify a completed task (returns 409)
-- [ ] `TaskCreated` event published on creation
-- [ ] `TaskCompleted` event published on completion
-- [ ] Pagination with cursor works correctly
+- [x] POST creates a task and returns 201
+- [x] GET list supports filtering by case, status, priority, and assignee (individually and combined)
+- [x] PATCH updates status and/or assignment
+- [x] Invalid state transitions return 409 Conflict
+- [x] Cannot modify a completed task (returns 409)
+- [x] `TaskCreated` event published on creation
+- [x] `TaskCompleted` event published on completion
+- [x] Pagination with cursor works correctly
 
 **Dependencies:** W4-01
 
@@ -225,12 +225,12 @@ Task generation logic:
 7. Save task, publish `TaskCreated` event
 
 **Acceptance criteria:**
-- [ ] `AlertRaised` event creates a task in the Task Service database
-- [ ] Task priority correctly maps from alert severity
-- [ ] Task title is descriptive and includes alert context
-- [ ] Task includes reference to originating AlertId and CaseId
-- [ ] Duplicate `AlertRaised` events do not create duplicate tasks (idempotent)
-- [ ] `TaskCreated` event published for the new task
+- [x] `AlertRaised` event creates a task in the Task Service database
+- [x] Task priority correctly maps from alert severity
+- [x] Task title is descriptive and includes alert context
+- [x] Task includes reference to originating AlertId and CaseId
+- [x] Duplicate `AlertRaised` events do not create duplicate tasks (idempotent)
+- [x] `TaskCreated` event published for the new task
 
 **Dependencies:** W4-02, M3-03
 
@@ -263,12 +263,12 @@ Logic:
 - Task Service populates this from the CareTask entity when publishing
 
 **Acceptance criteria:**
-- [ ] Completing a task that originated from a MissedMilestone alert marks the milestone as completed
-- [ ] `MilestoneCompleted` event published
-- [ ] Non-milestone tasks (AbnormalReading alerts or manual tasks) do not affect milestones
-- [ ] Care plan auto-completes if this was the last pending milestone
-- [ ] If milestone was already completed (by manual action), the event handler is a no-op
-- [ ] Milestone completion is visible in the Care Plan API response
+- [x] Completing a task that originated from a MissedMilestone alert marks the milestone as completed
+- [x] `MilestoneCompleted` event published
+- [x] Non-milestone tasks (AbnormalReading alerts or manual tasks) do not affect milestones
+- [x] Care plan auto-completes if this was the last pending milestone
+- [x] If milestone was already completed (by manual action), the event handler is a no-op
+- [x] Milestone completion is visible in the Care Plan API response
 
 **Dependencies:** W4-02, C2-06
 
@@ -334,13 +334,13 @@ Events:
 - If so: mark it as Completed, publish `MilestoneCompleted`
 
 **Acceptance criteria:**
-- [ ] CRUD operations work for appointments
-- [ ] All status transitions enforce valid paths (invalid transitions return 409)
-- [ ] `AppointmentBooked` event published on booking
-- [ ] `AppointmentCompleted` event published on completion
-- [ ] `AppointmentMissed` event published on no-show
-- [ ] Completing an appointment satisfies the "Follow-Up Appointment" care plan milestone
-- [ ] Pagination and filtering work correctly
+- [x] CRUD operations work for appointments
+- [x] All status transitions enforce valid paths (invalid transitions return 409)
+- [x] `AppointmentBooked` event published on booking
+- [x] `AppointmentCompleted` event published on completion
+- [x] `AppointmentMissed` event published on no-show
+- [x] Completing an appointment satisfies the "Follow-Up Appointment" care plan milestone
+- [x] Pagination and filtering work correctly
 
 **Dependencies:** F1-05, F1-06, C2-06
 
@@ -400,15 +400,15 @@ Query API:
 - Cursor pagination, sorted by CreatedAt descending
 
 **Acceptance criteria:**
-- [ ] AlertRaised (Critical/High) creates Email + InApp notifications
-- [ ] AlertRaised (Medium) creates InApp notification only
-- [ ] AppointmentBooked creates InApp notification
-- [ ] AppointmentMissed creates Email + InApp notifications
-- [ ] MilestoneCompleted creates InApp notification
-- [ ] All notifications logged with full content at Information level
-- [ ] Notification records persisted and queryable via API
-- [ ] Templates render correctly with event data (no placeholder text in output)
-- [ ] `NotificationSent` event published for each notification (consumed by Reporting/Audit later)
+- [x] AlertRaised (Critical/High) creates Email + InApp notifications
+- [x] AlertRaised (Medium) creates InApp notification only
+- [x] AppointmentBooked creates InApp notification
+- [x] AppointmentMissed creates Email + InApp notifications
+- [x] MilestoneCompleted creates InApp notification
+- [x] All notifications logged with full content at Information level
+- [x] Notification records persisted and queryable via API
+- [x] Templates render correctly with event data (no placeholder text in output)
+- [x] `NotificationSent` event published for each notification (consumed by Reporting/Audit later)
 
 **Dependencies:** F1-06, M3-03
 
@@ -454,13 +454,13 @@ Sidebar navigation:
 - Tasks item shows badge with count of Open tasks (fetch count on app load)
 
 **Acceptance criteria:**
-- [ ] Task list page (`/tasks`) shows all tasks with working filters
-- [ ] Status transition buttons work and update UI optimistically
-- [ ] Tasks section on case detail page shows tasks for that case
-- [ ] Create task form creates a new task
-- [ ] Priority and status badges use correct colors
-- [ ] Sidebar badge shows open task count
-- [ ] Clicking case link navigates to case detail
+- [x] Task list page (`/tasks`) shows all tasks with working filters
+- [x] Status transition buttons work and update UI optimistically
+- [x] Tasks section on case detail page shows tasks for that case
+- [x] Create task form creates a new task
+- [x] Priority and status badges use correct colors
+- [x] Sidebar badge shows open task count
+- [x] Clicking case link navigates to case detail
 
 **Dependencies:** W4-02, C2-09
 
@@ -496,12 +496,12 @@ React — Create appointment form:
 - Validation: scheduled date must be in the future
 
 **Acceptance criteria:**
-- [ ] Appointment section on case detail page shows appointments for that case
-- [ ] Create appointment form works with date/time picker
-- [ ] All status transitions work from the UI via action buttons
-- [ ] Invalid transitions are not offered as button options
-- [ ] Past-due booked appointments visually flagged (amber/warning background)
-- [ ] Type displayed as human-readable label
-- [ ] BFF proxies correctly to Appointment Service
+- [x] Appointment section on case detail page shows appointments for that case
+- [x] Create appointment form works with date/time picker
+- [x] All status transitions work from the UI via action buttons
+- [x] Invalid transitions are not offered as button options
+- [x] Past-due booked appointments visually flagged (amber/warning background)
+- [x] Type displayed as human-readable label
+- [x] BFF proxies correctly to Appointment Service
 
 **Dependencies:** W4-05, C2-09

@@ -143,8 +143,38 @@ public class EventSerializationTests
         {
             TaskId = Guid.NewGuid(),
             CaseId = Guid.NewGuid(),
+            AlertId = Guid.NewGuid(),
             CompletedBy = "coordinator@example.com",
             CompletedAt = DateTimeOffset.UtcNow
+        };
+        AssertRoundTrip(evt);
+    }
+
+    [Fact]
+    public void TaskCompleted_WithNullAlertId_RoundTrips()
+    {
+        var evt = new TaskCompleted
+        {
+            TaskId = Guid.NewGuid(),
+            CaseId = Guid.NewGuid(),
+            AlertId = null,
+            CompletedBy = "coordinator@example.com",
+            CompletedAt = DateTimeOffset.UtcNow
+        };
+        AssertRoundTrip(evt);
+    }
+
+    [Fact]
+    public void TaskCreated_WithNullAlertId_RoundTrips()
+    {
+        var evt = new TaskCreated
+        {
+            TaskId = Guid.NewGuid(),
+            CaseId = Guid.NewGuid(),
+            AlertId = null,
+            Title = "Manual task",
+            Priority = TaskPriority.Medium,
+            CreatedAt = DateTimeOffset.UtcNow
         };
         AssertRoundTrip(evt);
     }

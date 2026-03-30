@@ -14,6 +14,8 @@ var caseServiceUrl = services["CaseService"] ?? "http://localhost:5010";
 var carePlanServiceUrl = services["CarePlanService"] ?? "http://localhost:5020";
 var observationServiceUrl = services["ObservationService"] ?? "http://localhost:5030";
 var careGapEngineUrl = services["CareGapEngine"] ?? "http://localhost:5040";
+var taskServiceUrl = services["TaskService"] ?? "http://localhost:5050";
+var appointmentServiceUrl = services["AppointmentService"] ?? "http://localhost:5060";
 
 builder.Services.AddHttpClient("CaseService", client =>
 {
@@ -36,6 +38,18 @@ builder.Services.AddHttpClient("ObservationService", client =>
 builder.Services.AddHttpClient("CareGapEngine", client =>
 {
     client.BaseAddress = new Uri(careGapEngineUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("TaskService", client =>
+{
+    client.BaseAddress = new Uri(taskServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("AppointmentService", client =>
+{
+    client.BaseAddress = new Uri(appointmentServiceUrl);
     client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
 
@@ -136,6 +150,51 @@ app.MapMethods("/api/alerts/{alertId:guid}/acknowledge", ["PATCH"],
 app.MapMethods("/api/alerts/{alertId:guid}/resolve", ["PATCH"],
     async (Guid alertId, HttpContext ctx, IHttpClientFactory factory) =>
     await ProxyAsync(ctx, factory, "CareGapEngine", HttpMethod.Patch, $"/api/v1/alerts/{alertId}/resolve"));
+
+// --- Task Service endpoints ---
+
+// GET /api/tasks → Task Service GET /api/v1/tasks
+app.MapGet("/api/tasks", async (HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "TaskService", HttpMethod.Get, $"/api/v1/tasks{qs}");
+});
+
+// GET /api/cases/{caseId}/tasks → Task Service GET /api/v1/tasks?caseId={caseId}
+app.MapGet("/api/cases/{caseId:guid}/tasks", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "TaskService", HttpMethod.Get,
+        $"/api/v1/tasks?caseId={caseId}{(string.IsNullOrEmpty(qs) ? "" : "&" + qs.TrimStart('?'))}");
+});
+
+// POST /api/tasks → Task Service POST /api/v1/tasks
+app.MapPost("/api/tasks", async (HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "TaskService", HttpMethod.Post, "/api/v1/tasks"));
+
+// PATCH /api/tasks/{taskId} → Task Service PATCH /api/v1/tasks/{taskId}
+app.MapMethods("/api/tasks/{taskId:guid}", ["PATCH"],
+    async (Guid taskId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "TaskService", HttpMethod.Patch, $"/api/v1/tasks/{taskId}"));
+
+// --- Appointment Service endpoints ---
+
+// GET /api/cases/{caseId}/appointments → Appointment Service GET /api/v1/appointments?caseId={caseId}
+app.MapGet("/api/cases/{caseId:guid}/appointments", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "AppointmentService", HttpMethod.Get,
+        $"/api/v1/appointments?caseId={caseId}{(string.IsNullOrEmpty(qs) ? "" : "&" + qs.TrimStart('?'))}");
+});
+
+// POST /api/appointments → Appointment Service POST /api/v1/appointments
+app.MapPost("/api/appointments", async (HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "AppointmentService", HttpMethod.Post, "/api/v1/appointments"));
+
+// PATCH /api/appointments/{id} → Appointment Service PATCH /api/v1/appointments/{id}
+app.MapMethods("/api/appointments/{id:guid}", ["PATCH"],
+    async (Guid id, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "AppointmentService", HttpMethod.Patch, $"/api/v1/appointments/{id}"));
 
 app.Run();
 

@@ -2,6 +2,9 @@ using CareBridge.CaseService.Data;
 using CareBridge.CarePlanService.Data;
 using CareBridge.ObservationService.Data;
 using CareBridge.CareGapEngine.Data;
+using CareBridge.TaskService.Data;
+using CareBridge.AppointmentService.Data;
+using CareBridge.NotificationService.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -51,6 +54,27 @@ var migrationTargets = new (string Name, string DatabaseKey, Func<DbContext> Cre
             .UseSqlServer(BuildConnectionString(databases["CareGapDb"]))
             .Options;
         return new CareGapDbContext(opts);
+    }),
+    ("Task Service", "TaskDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<TaskDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["TaskDb"]))
+            .Options;
+        return new TaskDbContext(opts);
+    }),
+    ("Appointment Service", "AppointmentDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<AppointmentDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["AppointmentDb"]))
+            .Options;
+        return new AppointmentDbContext(opts);
+    }),
+    ("Notification Service", "NotificationDb", () =>
+    {
+        var opts = new DbContextOptionsBuilder<NotificationDbContext>()
+            .UseSqlServer(BuildConnectionString(databases["NotificationDb"]))
+            .Options;
+        return new NotificationDbContext(opts);
     })
 };
 
