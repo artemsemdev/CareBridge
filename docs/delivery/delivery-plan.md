@@ -320,16 +320,16 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 
 **Milestone: First demo — discharge creates case, care plan activates, visible in browser. ✓ ACHIEVED**
 
-### Wave 3: Clinical Value Loop
-16. **M3-01** — Observation Service domain + database
-17. **M3-02** — Observation Service API + validation
-18. **M3-03** — Care-Gap Engine — threshold rules
-19. **M3-04** — Care-Gap Engine — milestone scan
-20. **M3-05** — Alert query API
-21. **M3-06** — React observation display
-22. **M3-07** — React alert display
+### Wave 3: Clinical Value Loop — COMPLETED 2026-03-30
+16. ~~**M3-01** — Observation Service domain + database~~ DONE
+17. ~~**M3-02** — Observation Service API + validation~~ DONE
+18. ~~**M3-03** — Care-Gap Engine — threshold rules~~ DONE
+19. ~~**M3-04** — Care-Gap Engine — milestone scan~~ DONE
+20. ~~**M3-05** — Alert query API~~ DONE
+21. ~~**M3-06** — React observation display~~ DONE
+22. ~~**M3-07** — React alert display~~ DONE
 
-**Milestone: Full detection loop — observations in, alerts out, visible in UI.**
+**Milestone: Full detection loop — observations in, alerts out, visible in UI. ✓ ACHIEVED**
 
 ### Wave 4: Operational Workflows — COMPLETED 2026-03-31
 23. ~~**W4-01** — Task Service domain + database~~ DONE
