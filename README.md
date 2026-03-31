@@ -316,7 +316,3 @@ carebridge/
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-> **CareBridge** is a portfolio project by Artem Semenov. It demonstrates cloud architecture, Kubernetes delivery, and healthcare systems design using synthetic data in a public reference implementation.
