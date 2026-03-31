@@ -19,6 +19,8 @@
 - Not a FHIR-first system (FHIR is a secondary projection, deferred from MVP)
 - Not a fully scaled cloud deployment (local-first, cloud deployment is a later stage)
 
+> For a visual status view of completed vs remaining work, see [Delivery Dashboard](README.md).
+
 ---
 
 ## 2. Delivery Stages
@@ -345,7 +347,7 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 
 **Milestone: Full operational loop — alert → task → resolution → milestone completion. ✓ ACHIEVED**
 
-### Wave 5: Dashboard, Timeline, and Audit
+### Wave 5: Dashboard, Timeline, and Audit — PARTIALLY COMPLETE 2026-03-31
 31. ~~**D5-01** — Reporting Service event consumers~~ DONE
 32. ~~**D5-02** — Dashboard read model + API~~ DONE
 33. ~~**D5-03** — Timeline read model + API~~ DONE
@@ -356,7 +358,7 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 38. **A6-02** — Audit query API
 39. **A6-03** — React audit trail view
 
-**Milestone: Full CQRS proven. Dashboard, timeline, and audit all working.**
+**Milestone status:** Dashboard and timeline are working. Audit remains to complete Wave 5.
 
 ### Wave 6: Hardening
 40. Health endpoints across all services
