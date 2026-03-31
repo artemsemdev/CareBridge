@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBridge.CareGapEngine.Services;
 
+// Authorization: System-initiated background service — runs under service identity.
+// Audit: AlertRaised events for missed milestones create immutable audit records.
+// Security: Queries CarePlan Service via internal HTTP — trusted within cluster boundary.
 public class MilestoneScanBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;

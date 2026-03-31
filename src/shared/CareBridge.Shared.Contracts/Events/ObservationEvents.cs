@@ -2,6 +2,9 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.Shared.Contracts.Events;
 
+// PHI: ObservationReceived carries clinical vital sign values (Value, Unit, Type).
+// HIPAA Minimum Necessary: Value is required for threshold evaluation in CareGap Engine.
+// Log Hygiene: Consuming services must not log the Value field — it is clinical PHI.
 public sealed record ObservationReceived : IntegrationEvent
 {
     public required Guid ObservationId { get; init; }

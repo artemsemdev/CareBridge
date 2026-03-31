@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<CaseDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CaseDb")));
 
@@ -21,6 +22,9 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
+// PHI: Creates a new case with patient demographics (PatientId, PatientName, DiagnosisCode).
+// Authorization: In production, restricted to CareCoordinator role via BFF authorization policy.
+// Audit: CaseCreated event triggers immutable audit record in Audit Service per HIPAA §164.312(b).
 app.MapPost("/api/v1/cases", async (CreateCaseRequest request, CaseDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
 {
     if (string.IsNullOrWhiteSpace(request.PatientId))
@@ -51,6 +55,7 @@ app.MapPost("/api/v1/cases", async (CreateCaseRequest request, CaseDbContext db,
     db.Cases.Add(entity);
     await db.SaveChangesAsync();
 
+    // Audit: CaseCreated event carries patient context across service boundary for audit trail.
     try
     {
         await publisher.PublishAsync(new CaseCreated
@@ -66,12 +71,15 @@ app.MapPost("/api/v1/cases", async (CreateCaseRequest request, CaseDbContext db,
     }
     catch (Exception ex)
     {
+        // Log Hygiene: Log caseId only — no patient name or diagnosis in warning message.
         logger.LogWarning(ex, "Failed to publish CaseCreated event for case {CaseId}. Case was still created.", entity.Id);
     }
 
     return Results.Created($"/api/v1/cases/{entity.Id}", new CaseResponse(entity));
 });
 
+// PHI: Returns list of cases including patient names and diagnosis info.
+// Authorization: In production, all authenticated roles can view cases (read-only for non-coordinators).
 app.MapGet("/api/v1/cases", async (CaseDbContext db, string? status, int? limit, string? cursor) =>
 {
     var pageSize = Math.Min(limit ?? 20, 100);
@@ -111,12 +119,16 @@ app.MapGet("/api/v1/cases", async (CaseDbContext db, string? status, int? limit,
         hasMore));
 });
 
+// PHI: Returns full case detail including patient demographics and clinical context.
+// Authorization: In production, all authenticated roles can view individual case details.
 app.MapGet("/api/v1/cases/{id:guid}", async (Guid id, CaseDbContext db) =>
 {
     var entity = await db.Cases.FindAsync(id);
     return entity is null ? Results.NotFound() : Results.Ok(new CaseResponse(entity));
 });
 
+// Authorization: In production, restricted to CareCoordinator role — only coordinators can change case status.
+// Audit: CaseUpdated event records the status transition for compliance tracing per HIPAA §164.312(b).
 app.MapMethods("/api/v1/cases/{id:guid}/status", ["PATCH"], async (Guid id, UpdateStatusRequest request, CaseDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
 {
     var entity = await db.Cases.FindAsync(id);
@@ -137,6 +149,7 @@ app.MapMethods("/api/v1/cases/{id:guid}/status", ["PATCH"], async (Guid id, Upda
     }
     catch (Exception ex)
     {
+        // Log Hygiene: Log caseId only — no patient-identifiable data in warning message.
         logger.LogWarning(ex, "Failed to publish CaseUpdated event for case {CaseId}.", entity.Id);
     }
 
@@ -154,6 +167,9 @@ record CreateCaseRequest(
 
 record UpdateStatusRequest(CaseStatus Status);
 
+// HIPAA Minimum Necessary: CaseResponse includes PatientId, PatientName, and DiagnosisCode
+// because care coordinators need this context for case management workflows.
+// Contact information (phone, email, address) is NOT included in this response.
 record CaseResponse(
     Guid Id,
     string PatientId,

@@ -51,10 +51,12 @@ Alerts automatically create tasks. Coordinators manage tasks and schedule appoin
 
 **Status:** All 8 issues (W4-01 through W4-08) implemented. Task Service wired with EF Core, AlertRaised event handler for automatic task creation, severity-to-priority mapping, idempotent one-task-per-alert via unique filtered index, CRUD/list/filter/pagination endpoints, valid state transitions (Open→InProgress→Completed/Deferred), CompletedAt/CompletedBy handling, and TaskCreated/TaskCompleted event publishing. Appointment Service implemented with full lifecycle (Proposed→Booked→Completed/Canceled/NoShow), AppointmentBooked/AppointmentCompleted/AppointmentMissed events, and overdue detection. Notification Service consumes AlertRaised (Critical/High→Email+InApp, Medium→InApp), AppointmentBooked (InApp), AppointmentMissed (Email+InApp), and MilestoneCompleted (InApp), persists notifications, logs full content at Information level, and publishes NotificationSent events. Care Plan Service extended with TaskCompleted handler (looks up alert via CareGap Engine API, completes MissedMilestone milestones) and AppointmentCompleted handler (completes Follow-Up Appointment milestone). Gateway extended with TaskService and AppointmentService HTTP clients and 7 new BFF proxy endpoints. React frontend updated with TaskResponse/AppointmentResponse types, Tasks page with status/priority filters and create task modal, task section on case detail page with inline create form and status action buttons, appointments section on case detail page with create form and action buttons, overdue booked appointment highlighting, and open-task count badge in sidebar navigation. DB migrator extended for carebridge-task-db, carebridge-appointment-db, and carebridge-notification-db. 69 unit tests pass (18 contract serialization + 3 case service + 19 threshold evaluation + 18 task service + 11 appointment service).
 
-### Stage 4: Dashboard, Timeline, and Reporting (estimated: ~1.5 weeks)
+### Stage 4: Dashboard, Timeline, and Reporting (estimated: ~1.5 weeks) — COMPLETED 2026-03-31
 Reporting Service consumes all domain events and builds denormalized read models. The operational dashboard and case timeline come to life. This is where the CQRS pattern pays off.
 
 **Exit criteria:** Operational dashboard shows alert counts, overdue tasks, workload distribution. Case timeline shows a chronological view of all events for a patient. Dashboard queries hit Cosmos DB read models (or in-memory equivalent locally), not the transactional databases.
+
+**Status:** All 6 issues (D5-01 through D5-06) implemented. Reporting Service wired with in-memory read model store (`IReadModelStore` / `InMemoryReadModelStore`), event consumers for all 14 domain event types, EventId-based deduplication, and timestamp-based timeline ordering. Dashboard summary API (`GET /api/v1/reports/dashboard`) returns active case count, alerts by status/severity, open/overdue task counts, pending appointments, recent cases (last 10), and top alerts (top 10 by severity). Case timeline API (`GET /api/v1/reports/timeline/{caseId}`) returns paginated chronological entries with category filtering. Gateway extended with ReportingService HTTP client and 2 BFF proxy endpoints. React frontend updated with operational dashboard page (summary cards, alert queue, recent cases, manual refresh, loading skeletons) replacing placeholder, and case timeline component (vertical timeline with category-specific icons/colors, sort toggle, category filter chips, relative timestamps with hover, load-more pagination) replacing placeholder on case detail page. 96 unit tests pass (18 contract + 3 case + 19 threshold + 18 task + 11 appointment + 27 reporting service).
 
 ### Stage 5: Audit and Compliance (estimated: ~1 week)
 Audit Service captures all domain events into an immutable append-only log. Audit trail is queryable from the UI.
@@ -344,12 +346,12 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 **Milestone: Full operational loop — alert → task → resolution → milestone completion. ✓ ACHIEVED**
 
 ### Wave 5: Dashboard, Timeline, and Audit
-31. **D5-01** — Reporting Service event consumers
-32. **D5-02** — Dashboard read model + API
-33. **D5-03** — Timeline read model + API
-34. **D5-04** — BFF dashboard endpoint
-35. **D5-05** — React operational dashboard
-36. **D5-06** — React case timeline
+31. ~~**D5-01** — Reporting Service event consumers~~ DONE
+32. ~~**D5-02** — Dashboard read model + API~~ DONE
+33. ~~**D5-03** — Timeline read model + API~~ DONE
+34. ~~**D5-04** — BFF dashboard endpoint~~ DONE
+35. ~~**D5-05** — React operational dashboard~~ DONE
+36. ~~**D5-06** — React case timeline~~ DONE
 37. **A6-01** — Audit Service event consumer + storage
 38. **A6-02** — Audit query API
 39. **A6-03** — React audit trail view
@@ -428,9 +430,9 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 |-----------|--------|-------------|
 | **v0.1 — Foundation** | Wave 1 complete ✓ | Solution structure, local dev, shared libs |
 | **v0.2 — Case Pipeline** | Wave 2 complete ✓ | First vertical slice: discharge → case → care plan → UI |
-| **v0.3 — Monitoring Loop** | Wave 3 complete | Observations → alerts → UI |
+| **v0.3 — Monitoring Loop** | Wave 3 complete ✓ | Observations → alerts → UI |
 | **v0.4 — Operational Workflows** | Wave 4 complete ✓ | Tasks + appointments + notifications |
-| **v0.5 — Dashboard & Audit** | Wave 5 complete | CQRS proven, full UI |
+| **v0.5 — Dashboard & Audit** | Epic 5 complete ✓, Epic 6 pending | CQRS proven, full UI |
 | **v0.6 — Hardened** | Wave 6 complete | Observability + resilience |
 | **v0.7 — Cloud-Deployed** | Wave 7 complete | Running on Azure |
 | **v1.0 — Demo-Ready** | Wave 8 complete | Portfolio-ready release |

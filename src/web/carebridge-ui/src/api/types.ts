@@ -1,3 +1,8 @@
+// PHI: These types define the shape of patient data displayed in the frontend.
+// CaseResponse contains patient-identifiable fields (patientName, patientId, diagnosisCode).
+// ObservationResponse contains clinical values (vital signs).
+// Authorization: All data is fetched through the BFF which enforces role-based access.
+
 export type CaseStatus = 'Active' | 'Monitoring' | 'Completed' | 'Closed';
 export type MilestoneStatus = 'Pending' | 'Completed' | 'Missed' | 'Skipped';
 export type CarePlanStatus = 'Active' | 'Completed';
@@ -131,4 +136,65 @@ export interface CreateAppointmentRequest {
   scheduledAt: string;
   status?: AppointmentStatus;
   notes?: string;
+}
+
+// Dashboard types
+export interface DashboardSummaryResponse {
+  activeCaseCount: number;
+  alerts: {
+    open: number;
+    acknowledged: number;
+    bySeverity: {
+      critical: number;
+      high: number;
+      medium: number;
+      informational: number;
+    };
+  };
+  tasks: {
+    open: number;
+    overdue: number;
+  };
+  appointments: {
+    pending: number;
+  };
+  recentCases: {
+    id: string;
+    patientName: string;
+    status: string;
+    dischargeDate: string;
+    createdAt: string;
+  }[];
+  topAlerts: {
+    id: string;
+    caseId: string;
+    title: string;
+    severity: AlertSeverity;
+    age: string;
+    createdAt: string;
+  }[];
+  lastUpdatedAt: string;
+}
+
+// Timeline types
+export type TimelineCategory = 'case' | 'careplan' | 'observation' | 'alert' | 'task' | 'appointment' | 'notification';
+
+export interface TimelineEntry {
+  id: string;
+  timestamp: string;
+  eventType: string;
+  category: TimelineCategory;
+  title: string;
+  description: string;
+  actor: string;
+  severity: string | null;
+  entityId: string | null;
+}
+
+export interface TimelineResponse {
+  caseId: string;
+  entries: TimelineEntry[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
 }

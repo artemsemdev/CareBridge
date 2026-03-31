@@ -2,6 +2,8 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.Shared.Contracts.Events;
 
+// HIPAA Minimum Necessary: Alert events carry clinical context (severity, type, description)
+// but NOT patient demographics. Services reference cases by CaseId only.
 public sealed record AlertRaised : IntegrationEvent
 {
     public required Guid AlertId { get; init; }

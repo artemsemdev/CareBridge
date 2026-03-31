@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<CareGapDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CareGapDb")));
 
@@ -44,7 +45,8 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// GET /api/v1/alerts
+// Authorization: In production, CareCoordinator and Clinician roles can view alerts.
+// Alerts reference patient cases but do not contain patient demographics directly.
 app.MapGet("/api/v1/alerts", async (
     CareGapDbContext db,
     Guid? caseId,
@@ -106,7 +108,8 @@ app.MapGet("/api/v1/alerts/{alertId:guid}", async (Guid alertId, CareGapDbContex
     return alert is null ? Results.NotFound() : Results.Ok(ToResponse(alert));
 });
 
-// PATCH /api/v1/alerts/{alertId}/acknowledge
+// Authorization: In production, CareCoordinator role can acknowledge alerts.
+// Audit: AlertAcknowledged event records who acknowledged the alert and when per HIPAA §164.312(b).
 app.MapMethods("/api/v1/alerts/{alertId:guid}/acknowledge", ["PATCH"],
     async (Guid alertId, AlertActionRequest request, CareGapDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
     {
@@ -141,7 +144,8 @@ app.MapMethods("/api/v1/alerts/{alertId:guid}/acknowledge", ["PATCH"],
         return Results.Ok(ToResponse(alert));
     });
 
-// PATCH /api/v1/alerts/{alertId}/resolve
+// Authorization: In production, CareCoordinator role can resolve alerts.
+// Audit: AlertResolved event records who resolved the alert and when per HIPAA §164.312(b).
 app.MapMethods("/api/v1/alerts/{alertId:guid}/resolve", ["PATCH"],
     async (Guid alertId, AlertActionRequest request, CareGapDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
     {

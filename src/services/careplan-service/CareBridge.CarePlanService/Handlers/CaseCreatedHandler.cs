@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBridge.CarePlanService.Handlers;
 
+// Authorization: System-initiated — no user context. Runs under service identity.
+// Audit: CarePlanActivated event records automatic care plan creation for audit trail.
+// HIPAA Minimum Necessary: Handler receives CaseCreated event with diagnosis code
+// (needed for template selection) but does not store patient name or contact info.
 public class CaseCreatedHandler : IEventHandler<CaseCreated>
 {
     private readonly CarePlanDbContext _db;

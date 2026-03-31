@@ -2,6 +2,10 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.CaseService.Entities;
 
+// PHI: This entity contains Protected Health Information (patient name, diagnosis).
+// All access to this entity must be through authorized API endpoints.
+// Retention: Cases use soft-delete (Status=Closed). No hard-delete operation exists.
+// Closed cases remain queryable for audit trail integrity per HIPAA §164.530(j).
 public class CaseEntity
 {
     public Guid Id { get; set; }

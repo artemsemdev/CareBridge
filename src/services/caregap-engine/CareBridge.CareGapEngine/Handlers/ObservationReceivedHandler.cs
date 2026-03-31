@@ -8,6 +8,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CareBridge.CareGapEngine.Handlers;
 
+// Authorization: System-initiated — processes ObservationReceived events under service identity.
+// PHI: Evaluates patient vital sign values against clinical thresholds.
+// Audit: AlertRaised event records automated clinical alert creation for compliance tracing.
+// Log Hygiene: Observation values appear in debug logs only (disabled in production).
 public class ObservationReceivedHandler : IEventHandler<ObservationReceived>
 {
     private readonly CareGapDbContext _db;

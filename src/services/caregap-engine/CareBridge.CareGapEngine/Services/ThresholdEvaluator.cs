@@ -2,6 +2,9 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.CareGapEngine.Services;
 
+// Security: Threshold values are clinical safety boundaries based on medical reference standards.
+// Changes to these values affect patient safety alerting — require clinical review before modification.
+// PHI: This evaluator processes observation values (vital signs) but does not store or log them.
 /// <summary>
 /// Evaluates a single observation value against the MVP hardcoded threshold rules and returns
 /// the highest-severity alert info if any threshold is exceeded, or null for normal values.

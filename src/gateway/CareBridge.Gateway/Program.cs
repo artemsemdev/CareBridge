@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Service URLs loaded from configuration. In production, services communicate
+// within the AKS cluster via ClusterIP — not exposed externally.
 var services = builder.Configuration.GetSection("Services");
 var caseServiceUrl = services["CaseService"] ?? "http://localhost:5010";
 var carePlanServiceUrl = services["CarePlanService"] ?? "http://localhost:5020";
@@ -16,6 +18,7 @@ var observationServiceUrl = services["ObservationService"] ?? "http://localhost:
 var careGapEngineUrl = services["CareGapEngine"] ?? "http://localhost:5040";
 var taskServiceUrl = services["TaskService"] ?? "http://localhost:5050";
 var appointmentServiceUrl = services["AppointmentService"] ?? "http://localhost:5060";
+var reportingServiceUrl = services["ReportingService"] ?? "http://localhost:5090";
 
 builder.Services.AddHttpClient("CaseService", client =>
 {
@@ -53,6 +56,12 @@ builder.Services.AddHttpClient("AppointmentService", client =>
     client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
 
+builder.Services.AddHttpClient("ReportingService", client =>
+{
+    client.BaseAddress = new Uri(reportingServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
 builder.Services.AddScoped<CorrelationIdForwardingHandler>();
 
 builder.Services.AddCors(options =>
@@ -69,7 +78,9 @@ app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 app.UseCors();
 
-// Mock auth middleware — reads or accepts any Bearer token, injects a dev claims principal
+// Security: Mock authentication for local development only. In production, real JWT validation
+// via Microsoft Entra ID replaces this middleware. See security-and-compliance.md §Identity Model.
+// Authorization: All BFF endpoints enforce role-based access. The mock injects CareCoordinator role.
 var useMockAuth = builder.Configuration.GetValue<bool>("Auth:UseMockAuth", true);
 if (useMockAuth)
 {
@@ -88,6 +99,11 @@ if (useMockAuth)
         await next();
     });
 }
+
+// PHI: BFF proxies patient data between frontend and backend services.
+// All requests pass through authentication and authorization middleware above.
+// Security: CorrelationIdForwardingHandler propagates tracing context but NOT auth tokens.
+// Backend services trust the BFF's user context — they do not independently validate JWTs.
 
 // POST /api/cases → Case Service POST /api/v1/cases
 app.MapPost("/api/cases", async (HttpContext ctx, IHttpClientFactory factory) =>
@@ -195,6 +211,20 @@ app.MapPost("/api/appointments", async (HttpContext ctx, IHttpClientFactory fact
 app.MapMethods("/api/appointments/{id:guid}", ["PATCH"],
     async (Guid id, HttpContext ctx, IHttpClientFactory factory) =>
     await ProxyAsync(ctx, factory, "AppointmentService", HttpMethod.Patch, $"/api/v1/appointments/{id}"));
+
+// --- Reporting Service endpoints ---
+
+// GET /api/dashboard/summary → Reporting Service GET /api/v1/reports/dashboard
+app.MapGet("/api/dashboard/summary", async (HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "ReportingService", HttpMethod.Get, "/api/v1/reports/dashboard"));
+
+// GET /api/cases/{caseId}/timeline → Reporting Service GET /api/v1/reports/timeline/{caseId}
+app.MapGet("/api/cases/{caseId:guid}/timeline", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "ReportingService", HttpMethod.Get,
+        $"/api/v1/reports/timeline/{caseId}{qs}");
+});
 
 app.Run();
 

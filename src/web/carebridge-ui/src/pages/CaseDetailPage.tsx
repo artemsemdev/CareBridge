@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import { CaseTimeline } from '../components/CaseTimeline';
 import type {
   CaseStatus, MilestoneStatus, ObservationResponse, AlertResponse, AlertSeverity,
   TaskResponse, TaskStatus, TaskPriority, AppointmentResponse, AppointmentStatus, AppointmentType,
 } from '../api/types';
 
+// PHI: This page displays patient demographics (name, ID, diagnosis) and clinical data
+// (observations, alerts, care plan milestones). All data is fetched via authenticated BFF endpoints.
+// Authorization: In production, this page is accessible to CareCoordinator and Clinician roles only.
 const caseStatusStyles: Record<CaseStatus, string> = {
   Active: 'bg-blue-100 text-blue-800',
   Monitoring: 'bg-yellow-100 text-yellow-800',
@@ -372,11 +376,8 @@ export function CaseDetailPage() {
       {/* Appointments section */}
       <AppointmentsSection caseId={caseId!} />
 
-      {/* Timeline placeholder */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6 mt-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">Timeline</h3>
-        <p className="text-sm text-gray-400">Coming in next update</p>
-      </div>
+      {/* Timeline */}
+      <CaseTimeline caseId={caseId!} />
     </div>
   );
 }

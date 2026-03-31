@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<CarePlanDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("CarePlanDb")));
 
@@ -47,8 +48,8 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// GET /api/v1/care-plans?caseId={caseId}  — returns single plan for a case
-// GET /api/v1/care-plans?status={status}  — returns list of plans with that status (used by Care-Gap Engine milestone scanner)
+// PHI: Returns care plan data linked to patient cases. Care plans contain clinical workflow data.
+// Authorization: In production, CareCoordinator and Clinician roles can view care plans.
 app.MapGet("/api/v1/care-plans", async (Guid? caseId, string? status, CarePlanDbContext db) =>
 {
     if (caseId is not null)
@@ -69,7 +70,7 @@ app.MapGet("/api/v1/care-plans", async (Guid? caseId, string? status, CarePlanDb
     return Results.Problem("Either caseId or status query parameter is required.", statusCode: 400, title: "Validation Error");
 });
 
-// GET /api/v1/care-plans/{planId}
+// Authorization: In production, all authenticated clinical roles can view care plan details.
 app.MapGet("/api/v1/care-plans/{planId:guid}", async (Guid planId, CarePlanDbContext db) =>
 {
     var plan = await db.CarePlans.Include(p => p.Milestones)
@@ -78,7 +79,8 @@ app.MapGet("/api/v1/care-plans/{planId:guid}", async (Guid planId, CarePlanDbCon
     return plan is null ? Results.NotFound() : Results.Ok(ToResponse(plan));
 });
 
-// PATCH /api/v1/care-plans/{planId}/milestones/{milestoneId}
+// Authorization: In production, CareCoordinator and Clinician roles can update milestones.
+// Audit: MilestoneCompleted event triggers immutable audit record per HIPAA §164.312(b).
 app.MapMethods("/api/v1/care-plans/{planId:guid}/milestones/{milestoneId:guid}", ["PATCH"],
     async (Guid planId, Guid milestoneId, UpdateMilestoneRequest request, CarePlanDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
     {
@@ -109,6 +111,7 @@ app.MapMethods("/api/v1/care-plans/{planId:guid}/milestones/{milestoneId:guid}",
 
         if (request.Status == MilestoneStatus.Completed)
         {
+            // Audit: MilestoneCompleted event records care plan progress for compliance tracing.
             try
             {
                 await publisher.PublishAsync(new MilestoneCompleted

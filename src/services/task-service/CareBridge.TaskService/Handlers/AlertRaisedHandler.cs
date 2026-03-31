@@ -7,6 +7,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBridge.TaskService.Handlers;
 
+// Authorization: System-initiated — auto-creates tasks from clinical alerts under service identity.
+// Audit: TaskCreated event records automated task creation for compliance tracing.
+// HIPAA Minimum Necessary: Handler receives alert details (title, severity, description)
+// but no patient demographics. Task references caseId only.
 public class AlertRaisedHandler : IEventHandler<AlertRaised>
 {
     private readonly TaskDbContext _db;
