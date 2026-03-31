@@ -34,12 +34,14 @@ Operational visibility is a core requirement. The dashboard is what a care coord
 
 ## Exit Criteria
 
-- [ ] Reporting Service consumes all domain event types and updates read models
-- [ ] Dashboard API returns correct operational KPIs
-- [ ] Dashboard page renders summary cards, alert queue, and recent cases
-- [ ] Case timeline API returns chronological events for a case
-- [ ] Timeline component on case detail page shows all events with type-appropriate icons
-- [ ] Read model queries are fast (< 200ms locally)
+- [x] Reporting Service consumes all domain event types and updates read models
+- [x] Dashboard API returns correct operational KPIs
+- [x] Dashboard page renders summary cards, alert queue, and recent cases
+- [x] Case timeline API returns chronological events for a case
+- [x] Timeline component on case detail page shows all events with type-appropriate icons
+- [x] Read model queries are fast (< 200ms locally)
+
+**Completed:** 2026-03-31
 
 ---
 
@@ -190,12 +192,12 @@ Event handlers:
 - Idempotent: processing the same event twice produces the same state (use EventId for dedup)
 
 **Acceptance criteria:**
-- [ ] Reporting Service starts and subscribes to all domain event types
-- [ ] Events update in-memory read model state
-- [ ] EventId-based deduplication prevents double-counting
-- [ ] Events arriving out of order are handled gracefully (timeline sorted by timestamp, not arrival order)
-- [ ] Logging shows each event processed: "[Reporting] Processed {EventType} for case {CaseId}"
-- [ ] In-memory store is registered via DI and swappable
+- [x] Reporting Service starts and subscribes to all domain event types
+- [x] Events update in-memory read model state
+- [x] EventId-based deduplication prevents double-counting
+- [x] Events arriving out of order are handled gracefully (timeline sorted by timestamp, not arrival order)
+- [x] Logging shows each event processed: "[Reporting] Processed {EventType} for case {CaseId}"
+- [x] In-memory store is registered via DI and swappable
 
 **Dependencies:** All event-producing services (C2-03, C2-05, M3-02, M3-03, W4-02, W4-05, W4-06)
 
@@ -235,12 +237,12 @@ Overdue task detection:
 - Use Option B for MVP
 
 **Acceptance criteria:**
-- [ ] Dashboard summary returns correct counts reflecting processed events
-- [ ] Counts update as new events are processed
-- [ ] RecentCases returns last 10 created cases
-- [ ] TopAlerts returns top 10 open alerts by severity (Critical first) then age
-- [ ] Response time < 200ms (from in-memory store)
-- [ ] Empty state returns zero counts (not errors or nulls)
+- [x] Dashboard summary returns correct counts reflecting processed events
+- [x] Counts update as new events are processed
+- [x] RecentCases returns last 10 created cases
+- [x] TopAlerts returns top 10 open alerts by severity (Critical first) then age
+- [x] Response time < 200ms (from in-memory store)
+- [x] Empty state returns zero counts (not errors or nulls)
 
 **Dependencies:** D5-01
 
@@ -279,13 +281,13 @@ Human-readable descriptions:
 - Descriptions include actual values, not placeholder text
 
 **Acceptance criteria:**
-- [ ] Timeline returns all events for a case in chronological order (newest first)
-- [ ] Each entry has a human-readable title and description with actual data
-- [ ] Events from all services appear: case, care plan, observations, alerts, tasks, appointments, notifications
-- [ ] Category filter works (e.g., `?category=alert` shows only alert events)
-- [ ] Pagination works for cases with many events
-- [ ] TotalCount reflects all entries (not just the current page)
-- [ ] Empty timeline for a new case returns empty list (not 404)
+- [x] Timeline returns all events for a case in chronological order (newest first)
+- [x] Each entry has a human-readable title and description with actual data
+- [x] Events from all services appear: case, care plan, observations, alerts, tasks, appointments, notifications
+- [x] Category filter works (e.g., `?category=alert` shows only alert events)
+- [x] Pagination works for cases with many events
+- [x] TotalCount reflects all entries (not just the current page)
+- [x] Empty timeline for a new case returns empty list (not 404)
 
 **Dependencies:** D5-01
 
@@ -309,10 +311,10 @@ BFF endpoints:
 The BFF proxies directly for MVP — no additional aggregation logic needed. The Reporting Service already provides the pre-shaped response.
 
 **Acceptance criteria:**
-- [ ] Dashboard endpoint returns summary data from Reporting Service
-- [ ] Timeline endpoint returns timeline data for a specific case
-- [ ] Correlation ID forwarded to Reporting Service
-- [ ] 502 if Reporting Service is unavailable
+- [x] Dashboard endpoint returns summary data from Reporting Service
+- [x] Timeline endpoint returns timeline data for a specific case
+- [x] Correlation ID forwarded to Reporting Service
+- [x] 502 if Reporting Service is unavailable
 
 **Dependencies:** D5-02, D5-03
 
@@ -356,14 +358,14 @@ Replace the placeholder Dashboard page at route `/` (or `/dashboard`):
 - Last updated timestamp shown
 
 **Acceptance criteria:**
-- [ ] Dashboard page loads and displays all four summary cards with correct counts
-- [ ] Alert queue shows alerts sorted by severity and age
-- [ ] Recent cases section shows last 10 cases
-- [ ] Clicking any card navigates to the appropriate list page
-- [ ] Clicking an alert or case navigates to the case detail page
-- [ ] Loading skeleton shown while data fetches
-- [ ] Manual refresh button works
-- [ ] Last updated timestamp displayed
+- [x] Dashboard page loads and displays all four summary cards with correct counts
+- [x] Alert queue shows alerts sorted by severity and age
+- [x] Recent cases section shows last 10 cases
+- [x] Clicking any card navigates to the appropriate list page
+- [x] Clicking an alert or case navigates to the case detail page
+- [x] Loading skeleton shown while data fetches
+- [x] Manual refresh button works
+- [x] Last updated timestamp displayed
 
 **Dependencies:** D5-04, C2-08
 
@@ -409,13 +411,13 @@ Timeline component on case detail page:
 - Separate from the main case detail fetch (loaded when timeline section is visible)
 
 **Acceptance criteria:**
-- [ ] Timeline appears on case detail page replacing the placeholder
-- [ ] All event types rendered with appropriate icons and colors
-- [ ] Entries in correct chronological order (newest first by default)
-- [ ] Sort toggle switches between newest-first and oldest-first
-- [ ] Category filter chips show/hide event types
-- [ ] Relative timestamps with hover for absolute date
-- [ ] "Load more" works for cases with many events
-- [ ] Empty state for cases with no events beyond creation
+- [x] Timeline appears on case detail page replacing the placeholder
+- [x] All event types rendered with appropriate icons and colors
+- [x] Entries in correct chronological order (newest first by default)
+- [x] Sort toggle switches between newest-first and oldest-first
+- [x] Category filter chips show/hide event types
+- [x] Relative timestamps with hover for absolute date
+- [x] "Load more" works for cases with many events
+- [x] Empty state for cases with no events beyond creation
 
 **Dependencies:** D5-03, C2-09

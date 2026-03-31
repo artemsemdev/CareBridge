@@ -16,6 +16,7 @@ var observationServiceUrl = services["ObservationService"] ?? "http://localhost:
 var careGapEngineUrl = services["CareGapEngine"] ?? "http://localhost:5040";
 var taskServiceUrl = services["TaskService"] ?? "http://localhost:5050";
 var appointmentServiceUrl = services["AppointmentService"] ?? "http://localhost:5060";
+var reportingServiceUrl = services["ReportingService"] ?? "http://localhost:5090";
 
 builder.Services.AddHttpClient("CaseService", client =>
 {
@@ -50,6 +51,12 @@ builder.Services.AddHttpClient("TaskService", client =>
 builder.Services.AddHttpClient("AppointmentService", client =>
 {
     client.BaseAddress = new Uri(appointmentServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("ReportingService", client =>
+{
+    client.BaseAddress = new Uri(reportingServiceUrl);
     client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
 
@@ -195,6 +202,20 @@ app.MapPost("/api/appointments", async (HttpContext ctx, IHttpClientFactory fact
 app.MapMethods("/api/appointments/{id:guid}", ["PATCH"],
     async (Guid id, HttpContext ctx, IHttpClientFactory factory) =>
     await ProxyAsync(ctx, factory, "AppointmentService", HttpMethod.Patch, $"/api/v1/appointments/{id}"));
+
+// --- Reporting Service endpoints ---
+
+// GET /api/dashboard/summary → Reporting Service GET /api/v1/reports/dashboard
+app.MapGet("/api/dashboard/summary", async (HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "ReportingService", HttpMethod.Get, "/api/v1/reports/dashboard"));
+
+// GET /api/cases/{caseId}/timeline → Reporting Service GET /api/v1/reports/timeline/{caseId}
+app.MapGet("/api/cases/{caseId:guid}/timeline", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "ReportingService", HttpMethod.Get,
+        $"/api/v1/reports/timeline/{caseId}{qs}");
+});
 
 app.Run();
 

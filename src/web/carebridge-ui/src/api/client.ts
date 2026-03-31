@@ -1,6 +1,7 @@
 import type {
   CaseResponse, CarePlanResponse, PaginatedResponse, ObservationResponse, AlertResponse,
   TaskResponse, CreateTaskRequest, AppointmentResponse, CreateAppointmentRequest,
+  DashboardSummaryResponse, TimelineResponse,
 } from './types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
@@ -101,4 +102,15 @@ export const api = {
     post<AppointmentResponse>('/api/appointments', data),
   updateAppointment: (id: string, body: { status?: string; notes?: string }) =>
     patch<AppointmentResponse>(`/api/appointments/${id}`, body),
+
+  // Dashboard & Timeline
+  getDashboardSummary: () => get<DashboardSummaryResponse>('/api/dashboard/summary'),
+  getCaseTimeline: (caseId: string, params?: { limit?: number; cursor?: string; category?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.cursor) qs.set('cursor', params.cursor);
+    if (params?.category) qs.set('category', params.category);
+    const query = qs.toString() ? `?${qs}` : '';
+    return get<TimelineResponse>(`/api/cases/${caseId}/timeline${query}`);
+  },
 };

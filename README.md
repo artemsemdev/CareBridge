@@ -10,9 +10,9 @@ CareBridge is a reference implementation of a healthcare operations platform bui
 
 ## Current Status
 
-**v0.4 — Operational Workflows** (completed 2026-03-31)
+**v0.5 — Dashboard & Reporting** (completed 2026-03-31)
 
-The system currently implements the first four stages of the delivery plan:
+The system currently implements the first five stages of the delivery plan:
 
 | Stage | What's Working |
 |---|---|
@@ -20,10 +20,11 @@ The system currently implements the first four stages of the delivery plan:
 | **Case Intake** | Case Service (CRUD + events), Care Plan Service (event-driven activation with 5 milestones), API Gateway/BFF, React case list + case detail pages |
 | **Monitoring & Alerting** | Observation Service (ingestion + validation + dedup), Care-Gap Engine (threshold evaluation + milestone scanning), alert lifecycle API, observations + alerts in React UI |
 | **Coordinator Workflows** | Task Service (CRUD + alert-to-task automation + state transitions), Appointment Service (full lifecycle), Notification Service (event-driven log-based delivery), task completion → milestone update, appointment completion → milestone update, React task management + appointment management |
+| **Dashboard & Reporting** | Reporting Service (consumes all 14 domain event types, EventId-based deduplication, in-memory read model store), operational dashboard API + React page (summary cards, alert queue, recent cases), case timeline API + React component (category filtering, sort toggle, pagination, relative timestamps) |
 
-**69 automated tests pass** (contract serialization, threshold evaluation, task/appointment state transitions). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
+**96 automated tests pass** (contract serialization, threshold evaluation, task/appointment state transitions, reporting service read models/dedup/timeline ordering). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
 
-Services not yet implemented: Reporting Service, Audit Service, cloud deployment, synthetic data generator.
+Services not yet implemented: Audit Service, cloud deployment, synthetic data generator.
 
 ---
 

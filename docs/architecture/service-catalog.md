@@ -27,7 +27,7 @@ For higher-level context on how these services compose into a running system, se
 | 7 | Appointment Service | ASP.NET Core | Azure SQL | Yes | Yes | Yes |
 | 8 | Notification Service | ASP.NET Core | Azure SQL (logs) | Delivery logs | No | Yes |
 | 9 | Audit Service | ASP.NET Core | Cosmos DB | Yes | No | Yes |
-| 10 | Reporting / Read Model Service | ASP.NET Core | Cosmos DB | Derived views | No | Yes |
+| 10 | Reporting / Read Model Service | ASP.NET Core | In-memory (Cosmos DB in cloud) | Derived views | No | Yes |
 
 All services run as containers on AKS. All inter-service communication uses Azure Service Bus for asynchronous messaging and direct HTTP only through the API Gateway for synchronous reads.
 
@@ -812,33 +812,37 @@ Builds and serves denormalized read models that power the CareBridge dashboard, 
 
 ### Responsibilities
 
-- Consume domain events to build and update materialized views in Cosmos DB.
-- Serve dashboard queries: case summary counts, alert trends, task completion rates, observation charts.
-- Serve case timeline: a chronological view of all events for a single case.
-- Serve operational metrics: average time to task completion, milestone adherence rates, alert distribution by severity.
+- Consume domain events to build and update materialized views (in-memory for local dev, Cosmos DB in cloud).
+- Serve dashboard queries: active case count, open/acknowledged alert counts by severity, overdue tasks, pending appointments, recent cases, top alerts.
+- Serve case timeline: a chronological view of all events for a single case with category filtering and pagination.
 - Accept that data is eventually consistent with the write side (seconds, not minutes).
+- EventId-based deduplication prevents double-counting from at-least-once delivery.
 
 ### Owned Data
 
 | View | Storage | Description |
 |------|---------|-------------|
-| DashboardSummary | Cosmos DB | Aggregated counts by case status, open tasks, pending alerts, upcoming appointments |
-| CaseTimeline | Cosmos DB | Per-case chronological event stream for the detail view |
-| ObservationTrend | Cosmos DB | Per-case, per-observation-type time-series for charting |
-| OperationalMetrics | Cosmos DB | Aggregated metrics: task SLA adherence, milestone completion rates, alert volumes |
+| DashboardSummary | In-memory (Cosmos DB in cloud) | Aggregated counts: active cases, alerts by status/severity, open/overdue tasks, pending appointments, recent cases, top alerts |
+| CaseTimeline | In-memory (Cosmos DB in cloud) | Per-case chronological event stream for the detail view |
 
-Partition key strategy: `caseId` for case-scoped views; `metricType` for aggregated metrics.
+**MVP note:** ObservationTrend and OperationalMetrics views are deferred to post-MVP. The in-memory store uses `IReadModelStore` interface with `InMemoryReadModelStore` implementation, swappable via DI for a future `CosmosDbReadModelStore`.
+
+Partition key strategy (cloud): `caseId` for case-scoped views; singleton key for dashboard summary.
 
 ### Public APIs
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/reports/dashboard` | Aggregated dashboard summary |
-| GET | `/reports/cases/{caseId}/timeline` | Chronological event timeline for a case |
-| GET | `/reports/cases/{caseId}/observations/trend?type={type}&from={from}&to={to}` | Observation trend data for charting |
-| GET | `/reports/metrics/tasks?from={from}&to={to}` | Task completion and SLA metrics |
-| GET | `/reports/metrics/milestones?from={from}&to={to}` | Milestone adherence metrics |
-| GET | `/reports/metrics/alerts?from={from}&to={to}` | Alert volume and severity distribution |
+| GET | `/api/v1/reports/dashboard` | Aggregated dashboard summary (active cases, alerts, tasks, appointments, recent cases, top alerts) |
+| GET | `/api/v1/reports/timeline/{caseId}?limit=&cursor=&category=` | Chronological event timeline for a case with pagination and optional category filtering |
+
+**Port:** 5090
+
+**BFF routes:**
+| BFF Endpoint | Proxies To |
+|---|---|
+| `GET /api/dashboard/summary` | `GET /api/v1/reports/dashboard` |
+| `GET /api/cases/{caseId}/timeline` | `GET /api/v1/reports/timeline/{caseId}` |
 
 ### Events Published
 
@@ -848,23 +852,27 @@ None. This is a terminal consumer.
 
 | Event | Source | Action |
 |-------|--------|--------|
-| `CaseCreated` | Case Service | Initialize case timeline; update dashboard counts |
-| `CaseStatusChanged` | Case Service | Update dashboard counts; append to case timeline |
-| `MilestoneCompleted` | Care Plan Service | Update milestone metrics; append to case timeline |
-| `MilestoneOverdue` | Care Plan Service | Update milestone metrics; append to case timeline |
-| `ObservationReceived` | Observation Ingestion Service | Update observation trend view; append to case timeline |
-| `AlertRaised` | Care-Gap Engine | Update alert metrics; append to case timeline |
-| `TaskCreated` | Task Service | Update task metrics; append to case timeline |
-| `TaskCompleted` | Task Service | Update task metrics; append to case timeline |
-| `AppointmentBooked` | Appointment Service | Append to case timeline |
-| `AppointmentMissed` | Appointment Service | Append to case timeline; update appointment metrics |
+| `CaseCreated` | Case Service | ActiveCaseCount++, add to RecentCases; initialize case timeline |
+| `CaseUpdated` | Case Service | ActiveCaseCount-- on Closed; update RecentCases status; append to timeline |
+| `CarePlanActivated` | Care Plan Service | Append to case timeline |
+| `MilestoneCompleted` | Care Plan Service | Append to case timeline |
+| `ObservationReceived` | Observation Service | Append to case timeline |
+| `AlertRaised` | Care-Gap Engine | AlertsByStatus.Open++, AlertsBySeverity[sev]++, add to TopAlerts; append to timeline |
+| `AlertAcknowledged` | Care-Gap Engine | AlertsByStatus shift Open→Acknowledged; append to timeline |
+| `AlertResolved` | Care-Gap Engine | AlertsByStatus.Acknowledged--, remove from TopAlerts; append to timeline |
+| `TaskCreated` | Task Service | OpenTaskCount++; append to timeline |
+| `TaskCompleted` | Task Service | OpenTaskCount--; append to timeline |
+| `AppointmentBooked` | Appointment Service | PendingAppointmentCount++; append to timeline |
+| `AppointmentCompleted` | Appointment Service | PendingAppointmentCount--; append to timeline |
+| `AppointmentMissed` | Appointment Service | PendingAppointmentCount--; append to timeline |
+| `NotificationSent` | Notification Service | Append to timeline |
 
 ### Dependencies
 
 | Dependency | Type | Purpose |
 |------------|------|---------|
-| Cosmos DB | Infrastructure | Materialized view storage |
-| Azure Service Bus | Infrastructure | Event consumption |
+| In-memory store (Cosmos DB in cloud) | Infrastructure | Materialized view storage |
+| RabbitMQ (Service Bus in cloud) | Infrastructure | Event consumption |
 
 ### Security Considerations
 
