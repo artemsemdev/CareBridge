@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<NotificationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("NotificationDb")));
 
@@ -43,7 +44,9 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// GET /api/v1/notifications — notification history with filters
+// PHI: Notification records may contain patient case references in subject/body text.
+// Authorization: In production, restricted to CareCoordinator role (notification history).
+// Log Hygiene: Notification bodies may reference patient cases — do not log full response bodies.
 app.MapGet("/api/v1/notifications", async (
     NotificationDbContext db,
     Guid? caseId,

@@ -2,6 +2,8 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.NotificationService.Entities;
 
+// PHI: Notification body and subject may contain case references that link to patient data.
+// Retention: Notification records are not deleted. They serve as delivery audit trail per HIPAA §164.312(b).
 public class Notification
 {
     public Guid Id { get; set; }

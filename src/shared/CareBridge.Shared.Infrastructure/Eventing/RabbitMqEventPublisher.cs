@@ -9,6 +9,9 @@ using RabbitMQ.Client;
 
 namespace CareBridge.Shared.Infrastructure.Eventing;
 
+// Security: RabbitMQ credentials loaded from configuration (env var or Key Vault in production).
+// In production, TLS is required for AMQP connections. See security-and-compliance.md §Encryption.
+// Audit: All published events are consumed by the Audit Service for immutable audit trail.
 public class RabbitMqEventPublisher : IEventPublisher, IAsyncDisposable
 {
     private const string ExchangeName = "carebridge.events";

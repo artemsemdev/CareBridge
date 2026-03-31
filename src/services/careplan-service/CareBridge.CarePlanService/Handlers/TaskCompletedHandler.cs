@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBridge.CarePlanService.Handlers;
 
+// Authorization: System-initiated — processes TaskCompleted events under service identity.
+// Audit: MilestoneCompleted event records automated milestone completion for compliance tracing.
 public class TaskCompletedHandler : IEventHandler<TaskCompleted>
 {
     private readonly CarePlanDbContext _db;

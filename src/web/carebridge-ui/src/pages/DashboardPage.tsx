@@ -3,6 +3,10 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import type { AlertSeverity } from '../api/types';
 
+// HIPAA Minimum Necessary: Dashboard displays aggregate metrics and summary data.
+// Patient names appear in the Recent Cases widget for coordinator workflow.
+// No clinical values, contact info, or detailed diagnosis data is shown on this page.
+// Authorization: In production, all authenticated roles can view the dashboard.
 const severityBadgeStyles: Record<AlertSeverity, string> = {
   Critical: 'bg-red-100 text-red-800',
   High: 'bg-orange-100 text-orange-800',

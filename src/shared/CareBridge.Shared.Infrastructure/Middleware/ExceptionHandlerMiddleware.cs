@@ -9,6 +9,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CareBridge.Shared.Infrastructure.Middleware;
 
+// Log Hygiene: Exception details are logged with correlationId for tracing.
+// In production, exception messages are NOT returned to clients — only generic error text.
+// Security: Full exception details (which may contain PHI from request bodies)
+// are only exposed in Development environment via ProblemDetails.Detail.
 public class ExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;

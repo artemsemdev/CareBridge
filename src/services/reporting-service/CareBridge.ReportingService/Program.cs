@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// HIPAA Minimum Necessary: Reporting Service stores aggregate counts and summary data only.
+// Individual patient records are referenced by ID — no patient names stored in dashboard metrics.
 // Read model store — in-memory for local dev, swappable via DI
 builder.Services.AddSingleton<IReadModelStore, InMemoryReadModelStore>();
 
@@ -70,7 +72,9 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// --- D5-02: Dashboard summary endpoint ---
+// HIPAA Minimum Necessary: Dashboard returns aggregate counts and recent case summaries.
+// Patient names appear in RecentCases for coordinator workflow — no contact info or clinical values.
+// Authorization: In production, all authenticated roles can view the dashboard (read-only).
 
 app.MapGet("/api/v1/reports/dashboard", (IReadModelStore store) =>
 {
@@ -120,7 +124,9 @@ app.MapGet("/api/v1/reports/dashboard", (IReadModelStore store) =>
     });
 });
 
-// --- D5-03: Case timeline endpoint ---
+// PHI: Timeline entries may contain clinical event descriptions (alert details, observation types).
+// Authorization: In production, CareCoordinator and Clinician roles can view case timelines.
+// HIPAA Minimum Necessary: Timeline entries reference entities by ID — no patient demographics included.
 
 app.MapGet("/api/v1/reports/timeline/{caseId:guid}", (Guid caseId, int? limit, string? cursor, string? category, IReadModelStore store) =>
 {

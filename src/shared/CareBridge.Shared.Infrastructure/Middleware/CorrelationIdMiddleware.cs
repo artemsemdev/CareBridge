@@ -4,6 +4,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CareBridge.Shared.Infrastructure.Middleware;
 
+// Security: CorrelationId is accepted from external callers but used for tracing only.
+// It MUST NOT be used for authorization decisions — it can be spoofed.
+// All authorization decisions use JWT claims validated by the BFF.
 public class CorrelationIdMiddleware
 {
     public const string HeaderName = "X-Correlation-Id";

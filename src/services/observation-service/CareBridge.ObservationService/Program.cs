@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<ObservationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ObservationDb")));
 
@@ -21,7 +22,9 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// POST /api/v1/observations — ingest an observation
+// PHI: Ingests patient vital sign data (clinical observations) — this is Protected Health Information.
+// Authorization: In production, restricted to system/device identity or CareCoordinator role.
+// Audit: ObservationReceived event triggers audit trail for clinical data ingestion per HIPAA §164.312(b).
 app.MapPost("/api/v1/observations", async (HttpContext ctx, ObservationDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
 {
     var idempotencyKey = ctx.Request.Headers["Idempotency-Key"].FirstOrDefault();
@@ -88,6 +91,7 @@ app.MapPost("/api/v1/observations", async (HttpContext ctx, ObservationDbContext
     db.Observations.Add(entity);
     await db.SaveChangesAsync();
 
+    // Audit: ObservationReceived event carries clinical values across service boundary for threshold evaluation and audit trail.
     try
     {
         await publisher.PublishAsync(new ObservationReceived
@@ -102,13 +106,17 @@ app.MapPost("/api/v1/observations", async (HttpContext ctx, ObservationDbContext
     }
     catch (Exception ex)
     {
+        // Log Hygiene: Log observation ID only — observation values (vital signs) are PHI and must not appear in warning messages.
         logger.LogWarning(ex, "Failed to publish ObservationReceived event for observation {ObservationId}.", entity.Id);
     }
 
     return Results.Created($"/api/v1/observations/{entity.Id}", ToResponse(entity));
 });
 
-// GET /api/v1/observations?caseId={caseId}&type={type}&from={from}&to={to}&limit={limit}&cursor={cursor}
+// PHI: Returns patient vital sign readings (observation values are clinical PHI).
+// Authorization: In production, restricted to CareCoordinator and Clinician roles.
+// Log Hygiene: No audit event for observation list queries (read-only, high-frequency).
+// Read-access auditing is handled at infrastructure level via request logging.
 app.MapGet("/api/v1/observations", async (
     ObservationDbContext db,
     Guid? caseId,
@@ -177,6 +185,8 @@ static string? ValidateUnit(ObservationType type, string unit) => type switch
     _ => null
 };
 
+// Security: Range validation prevents injection of physiologically impossible values
+// that could trigger false clinical alerts. Ranges are based on clinical reference standards.
 static string? ValidateRange(ObservationType type, decimal value) => type switch
 {
     ObservationType.BloodPressure when value < 40 || value > 300
@@ -213,6 +223,9 @@ record CreateObservationRequest(
     DateTimeOffset RecordedAt,
     string? DeviceId);
 
+// HIPAA Minimum Necessary: ObservationResponse includes the observation value (vital sign reading)
+// because clinicians and coordinators need this data for patient monitoring.
+// Patient name and contact info are NOT included — only the CaseId reference.
 record ObservationResponse(
     Guid Id,
     Guid CaseId,

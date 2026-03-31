@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<TaskDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TaskDb")));
 
@@ -35,7 +36,8 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// POST /api/v1/tasks — create task manually
+// Authorization: In production, CareCoordinator role can create tasks manually.
+// Audit: TaskCreated event triggers immutable audit record per HIPAA §164.312(b).
 app.MapPost("/api/v1/tasks", async (CreateTaskRequest request, TaskDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
 {
     var errors = new List<string>();
@@ -84,7 +86,7 @@ app.MapPost("/api/v1/tasks", async (CreateTaskRequest request, TaskDbContext db,
     return Results.Created($"/api/v1/tasks/{task.Id}", ToResponse(task));
 });
 
-// GET /api/v1/tasks — list tasks with filters
+// Authorization: In production, CareCoordinator (full access), Clinician and OpsManager (view only).
 app.MapGet("/api/v1/tasks", async (
     TaskDbContext db,
     Guid? caseId,
@@ -146,7 +148,8 @@ app.MapGet("/api/v1/tasks/{taskId:guid}", async (Guid taskId, TaskDbContext db) 
     return task is null ? Results.NotFound() : Results.Ok(ToResponse(task));
 });
 
-// PATCH /api/v1/tasks/{taskId} — update task (status, assignment, priority)
+// Authorization: In production, CareCoordinator role can update task status and assignment.
+// Audit: TaskCompleted event records who completed the task and when per HIPAA §164.312(b).
 app.MapMethods("/api/v1/tasks/{taskId:guid}", ["PATCH"],
     async (Guid taskId, UpdateTaskRequest request, TaskDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
     {

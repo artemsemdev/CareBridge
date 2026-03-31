@@ -1,5 +1,8 @@
 namespace CareBridge.ReportingService.ReadModels;
 
+// PHI: RecentCase.PatientName contains patient-identifiable data for coordinator display.
+// HIPAA Minimum Necessary: Dashboard read models store only the minimum fields needed
+// for aggregate metrics. No contact info, clinical values, or diagnosis details are stored.
 public class DashboardSummary
 {
     public int ActiveCaseCount { get; set; }

@@ -5,6 +5,9 @@ using CareBridge.Shared.Infrastructure.Eventing;
 
 namespace CareBridge.ReportingService.Handlers;
 
+// Authorization: System-initiated — processes domain events under service identity to build dashboard read models.
+// PHI: CaseCreated events carry PatientName for the RecentCases display widget.
+// No other patient demographics are stored in the dashboard summary.
 public class DashboardEventHandler :
     IEventHandler<CaseCreated>,
     IEventHandler<CaseUpdated>,

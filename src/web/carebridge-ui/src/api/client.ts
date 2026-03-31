@@ -4,6 +4,10 @@ import type {
   DashboardSummaryResponse, TimelineResponse,
 } from './types';
 
+// Security: All API calls route through the BFF gateway which handles authentication
+// and authorization. The frontend never calls backend microservices directly.
+// PHI: API responses may contain patient-identifiable data — components rendering this
+// data should only be mounted inside role-gated routes.
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
 
 async function get<T>(path: string): Promise<T> {

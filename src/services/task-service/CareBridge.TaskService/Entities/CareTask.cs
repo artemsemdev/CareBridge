@@ -2,6 +2,8 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.TaskService.Entities;
 
+// Retention: Tasks are not hard-deleted. Completed tasks remain queryable
+// for audit trail integrity and care coordination history per HIPAA §164.530(j).
 public class CareTask
 {
     public Guid Id { get; set; }

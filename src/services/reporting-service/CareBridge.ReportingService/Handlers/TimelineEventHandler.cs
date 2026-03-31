@@ -5,6 +5,10 @@ using CareBridge.Shared.Infrastructure.Eventing;
 
 namespace CareBridge.ReportingService.Handlers;
 
+// Authorization: System-initiated — processes all domain events under service identity.
+// PHI: ObservationReceived timeline entries include observation type and value in the description.
+// This is clinical PHI — timeline access must be restricted to authorized roles in production.
+// Log Hygiene: Timeline descriptions are stored in-memory, not written to application logs.
 public class TimelineEventHandler :
     IEventHandler<CaseCreated>,
     IEventHandler<CaseUpdated>,

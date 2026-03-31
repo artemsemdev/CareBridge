@@ -8,6 +8,9 @@ import type {
   TaskResponse, TaskStatus, TaskPriority, AppointmentResponse, AppointmentStatus, AppointmentType,
 } from '../api/types';
 
+// PHI: This page displays patient demographics (name, ID, diagnosis) and clinical data
+// (observations, alerts, care plan milestones). All data is fetched via authenticated BFF endpoints.
+// Authorization: In production, this page is accessible to CareCoordinator and Clinician roles only.
 const caseStatusStyles: Record<CaseStatus, string> = {
   Active: 'bg-blue-100 text-blue-800',
   Monitoring: 'bg-yellow-100 text-yellow-800',

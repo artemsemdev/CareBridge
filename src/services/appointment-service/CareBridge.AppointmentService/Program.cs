@@ -11,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
 
+// Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
 builder.Services.AddDbContext<AppointmentDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AppointmentDb")));
 
@@ -21,7 +22,8 @@ var app = builder.Build();
 app.UseCareBridgeDefaults();
 app.MapCareBridgeHealthChecks();
 
-// POST /api/v1/appointments — create appointment
+// Authorization: In production, CareCoordinator and Clinician roles can create appointments.
+// Audit: AppointmentBooked event triggers audit record when status is Booked per HIPAA §164.312(b).
 app.MapPost("/api/v1/appointments", async (CreateAppointmentRequest request, AppointmentDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
 {
     var errors = new List<string>();
@@ -129,7 +131,8 @@ app.MapGet("/api/v1/appointments/{id:guid}", async (Guid id, AppointmentDbContex
     return appointment is null ? Results.NotFound() : Results.Ok(ToResponse(appointment));
 });
 
-// PATCH /api/v1/appointments/{id} — update status/notes
+// Authorization: In production, CareCoordinator and Clinician roles can update appointment status.
+// Audit: AppointmentCompleted/AppointmentMissed events record lifecycle transitions for compliance tracing.
 app.MapMethods("/api/v1/appointments/{id:guid}", ["PATCH"],
     async (Guid id, UpdateAppointmentRequest request, AppointmentDbContext db, IEventPublisher publisher, ILogger<Program> logger) =>
     {

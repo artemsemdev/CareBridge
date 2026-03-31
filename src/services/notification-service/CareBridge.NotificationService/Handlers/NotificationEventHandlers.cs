@@ -6,6 +6,11 @@ using CareBridge.Shared.Infrastructure.Eventing;
 
 namespace CareBridge.NotificationService.Handlers;
 
+// Authorization: System-initiated — all notification handlers run under service identity.
+// Audit: NotificationSent events record delivery for compliance tracing per HIPAA §164.312(b).
+// HIPAA Minimum Necessary: Notification content includes alert/appointment summaries
+// but not patient demographics (name, contact info). Case references use truncated IDs only.
+// Security: NotificationSent event payload excludes notification body to limit PHI in transit.
 public class AlertRaisedNotificationHandler : IEventHandler<AlertRaised>
 {
     private readonly NotificationDbContext _db;

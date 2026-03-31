@@ -2,6 +2,8 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.AppointmentService.Entities;
 
+// Retention: Appointments are not hard-deleted. Terminal-status appointments (Completed, Canceled, NoShow)
+// remain queryable for audit trail integrity per HIPAA §164.530(j).
 public class Appointment
 {
     public Guid Id { get; set; }

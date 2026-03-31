@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CareBridge.CarePlanService.Handlers;
 
+// Authorization: System-initiated — processes AppointmentCompleted events under service identity.
+// Audit: MilestoneCompleted event records automated milestone completion triggered by appointment.
 public class AppointmentCompletedHandler : IEventHandler<AppointmentCompleted>
 {
     private readonly CarePlanDbContext _db;

@@ -1,3 +1,8 @@
+// PHI: These types define the shape of patient data displayed in the frontend.
+// CaseResponse contains patient-identifiable fields (patientName, patientId, diagnosisCode).
+// ObservationResponse contains clinical values (vital signs).
+// Authorization: All data is fetched through the BFF which enforces role-based access.
+
 export type CaseStatus = 'Active' | 'Monitoring' | 'Completed' | 'Closed';
 export type MilestoneStatus = 'Pending' | 'Completed' | 'Missed' | 'Skipped';
 export type CarePlanStatus = 'Active' | 'Completed';

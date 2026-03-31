@@ -2,6 +2,9 @@ using CareBridge.Shared.Contracts.Enums;
 
 namespace CareBridge.ObservationService.Entities;
 
+// PHI: This entity contains clinical observation data (vital sign values).
+// Observation values are Protected Health Information under HIPAA.
+// Log Hygiene: Never log the Value property — log ObservationId and Type only.
 public class Observation
 {
     public Guid Id { get; set; }

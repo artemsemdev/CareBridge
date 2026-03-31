@@ -12,6 +12,9 @@ using RabbitMQ.Client.Events;
 
 namespace CareBridge.Shared.Infrastructure.Eventing;
 
+// Security: RabbitMQ credentials loaded from configuration (env var or Key Vault in production).
+// Audit: Event consumers process domain events that create audit trail entries.
+// Messages carry correlation metadata for distributed tracing — not user tokens.
 public class EventConsumerBackgroundService : BackgroundService
 {
     private const string ExchangeName = "carebridge.events";
