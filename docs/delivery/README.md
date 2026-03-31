@@ -1,49 +1,117 @@
 # Delivery Dashboard
 
-**Document type:** Delivery status dashboard
-**Status:** Living document
+**Status:** Living document — updated after each completed issue
 **Last updated:** 2026-03-31
-**Scope:** Top-level view of completed and remaining delivery work for CareBridge
+**Scope:** CareBridge MVP — 52 issues across 7 epics, delivered in 8 waves
 
 ---
 
-CareBridge has completed the local-first core product through dashboard and reporting. The remaining scope is audit, hardening, cloud deployment, and demo readiness.
-
-## Snapshot
-
-| Metric | Value |
-|---|---|
-| Fully completed waves | `4 / 8` |
-| Current wave | `Wave 5` (`6 / 9` issues complete) |
-| Completed epics | `5 / 7` |
-| Completed issues | `36 / 52` |
-| Remaining issues | `16 / 52` |
-| Next executable item | `A6-01` — Audit Service event consumer and storage |
-
----
-
-## Progress View
+## Progress Snapshot
 
 ```text
-Overall delivery       [#####################---------] 36 / 52
-Fully complete waves   [###############---------------]  4 /  8
-Current wave (Wave 5)  [####################----------]  6 /  9
-Audit                  [------------------------------]  0 /  3
-Hardening              [------------------------------]  0 /  5
-Cloud deployment       [------------------------------]  0 /  6
-Demo-ready             [------------------------------]  0 /  2
+
+  ██████████████░░░░░░  69% COMPLETE  ·  36 of 52 issues delivered
+
+```
+
+| Metric | Value |
+|--------|------:|
+| Issues completed | **36** / 52 |
+| Epics completed | **5** / 7 |
+| Waves fully completed | **4** / 8 |
+| Current wave | Wave 5 — Dashboard & Audit (6 / 9) |
+| Unit tests passing | **96** |
+| Next up | `A6-01` Audit Service event consumer |
+
+```mermaid
+pie title Issue Completion
+    "Completed (36)" : 36
+    "Remaining (16)" : 16
 ```
 
 ---
 
-## Remaining Work By Stream
+## Wave Progress
 
-| Stream | Status | Done / Total | Remaining | What is left |
-|---|---|---:|---:|---|
-| Audit | Next | 0 / 3 | 3 | Event consumer and storage, query API, BFF + React audit view |
-| Hardening | Planned | 0 / 5 | 5 | Health endpoints, structured logging, OpenTelemetry, circuit breakers, error hardening |
-| Cloud deployment | Planned | 0 / 6 | 6 | Dockerfiles, Helm charts, Terraform core/data, GitHub Actions CI/CD |
-| Demo-ready | Planned | 0 / 2 | 2 | Synthetic data generator and demo walkthrough |
+```text
+Wave 1 · Foundation       ████████████████████  6/6   100%  DONE
+Wave 2 · Case Intake      ████████████████████  9/9   100%  DONE
+Wave 3 · Monitoring       ████████████████████  7/7   100%  DONE
+Wave 4 · Coordinator      ████████████████████  8/8   100%  DONE
+Wave 5 · Dashboard/Audit  █████████████░░░░░░░  6/9    67%  IN PROGRESS
+Wave 6 · Hardening        ░░░░░░░░░░░░░░░░░░░░  0/5     0%  PLANNED
+Wave 7 · Cloud Deploy     ░░░░░░░░░░░░░░░░░░░░  0/6     0%  PLANNED
+Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░░░░  0/2     0%  PLANNED
+```
+
+---
+
+## Epic Completion
+
+| # | Epic | Progress | Status |
+|--:|------|:--------:|:------:|
+| 1 | Foundation & Developer Experience | 6 / 6 (100%) | Done |
+| 2 | Case Intake Pipeline | 9 / 9 (100%) | Done |
+| 3 | Remote Monitoring & Alerting | 7 / 7 (100%) | Done |
+| 4 | Coordinator Workflows | 8 / 8 (100%) | Done |
+| 5 | Dashboard, Timeline & Reporting | 6 / 6 (100%) | Done |
+| 6 | Audit & Compliance | 0 / 3 (0%) | Next |
+| 7 | Infrastructure & Cloud Deployment | 0 / 13 (0%) | Planned |
+
+---
+
+## Remaining Work
+
+### Audit & Compliance — 3 issues · Next
+
+| ID | Issue | Depends On |
+|----|-------|------------|
+| A6-01 | Audit Service event consumer and storage | Epic 5 (done) |
+| A6-02 | Audit Service query API | A6-01 |
+| A6-03 | BFF and React audit trail view | A6-02 |
+
+### Hardening & Observability — 5 issues · Wave 6
+
+| ID | Issue | Scope |
+|----|-------|-------|
+| H-01 | Health endpoints across all services | /startup, /ready, /healthz for every service |
+| H-02 | Structured JSON logging standardization | Consistent format with correlation IDs |
+| H-03 | OpenTelemetry distributed tracing | Basic trace emission across service calls |
+| H-04 | Circuit breakers for inter-service HTTP | Resilience on critical communication paths |
+| H-05 | Error handling review and edge case hardening | Systematic audit of error paths |
+
+### Cloud Deployment — 6 issues · Wave 7
+
+| ID | Issue | Scope |
+|----|-------|-------|
+| I7-01 | Multi-stage Dockerfiles | All services and frontend |
+| I7-02 | Helm charts | Per-service chart with values files |
+| I7-03 | Terraform — core Azure resources | AKS, ACR, networking, resource groups |
+| I7-04 | Terraform — data and messaging services | Azure SQL, Cosmos DB, Service Bus |
+| I7-05 | GitHub Actions CI pipeline | Build, test, lint, scan on PR |
+| I7-06 | GitHub Actions CD pipeline | Deploy to dev AKS on merge |
+
+### Demo-Ready — 2 issues · Wave 8
+
+| ID | Issue | Scope |
+|----|-------|-------|
+| I7-07 | Synthetic data generator | Seeds a realistic demo dataset |
+| I7-08 | Demo walkthrough documentation | End-to-end guided script |
+
+---
+
+## Milestone Tracker
+
+| Version | Milestone | Status |
+|:-------:|-----------|:------:|
+| v0.1 | Foundation — solution structure, local dev, shared libs | **Done** |
+| v0.2 | Case Pipeline — first vertical slice: discharge to UI | **Done** |
+| v0.3 | Monitoring Loop — observations in, alerts out, visible in UI | **Done** |
+| v0.4 | Operational Workflows — tasks, appointments, notifications | **Done** |
+| v0.5 | Dashboard & Audit — CQRS proven, full UI | **In Progress** |
+| v0.6 | Hardened — observability and resilience patterns | Planned |
+| v0.7 | Cloud-Deployed — running on Azure AKS | Planned |
+| v1.0 | Demo-Ready — portfolio release | Planned |
 
 ---
 
@@ -51,27 +119,30 @@ Demo-ready             [------------------------------]  0 /  2
 
 ```mermaid
 flowchart LR
-    subgraph Done
+    subgraph Completed
         E1[Foundation]
         E2[Case Intake]
-        E3[Monitoring and Alerting]
-        E4[Coordinator Workflows]
-        E5[Dashboard and Reporting]
+        E3[Monitoring]
+        E4[Coordinator]
+        E5[Dashboard]
     end
 
-    subgraph Remaining
-        A1[A6-01 Audit consumer and storage]
-        A2[A6-02 Audit query API]
+    subgraph "Up Next"
+        A1[A6-01 Audit Storage]
+        A2[A6-02 Audit API]
         A3[A6-03 Audit UI]
-        H[H-01 to H-05 Hardening]
+    end
+
+    subgraph Planned
+        H[H-01..05 Hardening]
         D1[I7-01 Dockerfiles]
-        D2[I7-02 Helm charts]
-        T1[I7-03 Terraform core]
-        T2[I7-04 Terraform data]
-        CI[I7-05 CI pipeline]
-        CD[I7-06 CD pipeline]
-        G[I7-07 Synthetic data generator]
-        W[I7-08 Demo walkthrough]
+        D2[I7-02 Helm]
+        T1[I7-03 Terraform Core]
+        T2[I7-04 Terraform Data]
+        CI[I7-05 CI]
+        CD[I7-06 CD]
+        G[I7-07 Data Gen]
+        W[I7-08 Demo]
     end
 
     E1 --> E2 --> E3 --> E4 --> E5 --> A1 --> A2 --> A3 --> H
@@ -94,9 +165,9 @@ flowchart LR
 ## Navigation
 
 | Need | Document |
-|---|---|
-| Visual top-level status | [Delivery Dashboard](README.md) |
-| Detailed execution order and stage history | [Delivery Plan](delivery-plan.md) |
+|------|----------|
+| Visual top-level status | [Delivery Dashboard](README.md) _(this file)_ |
+| Detailed execution plan and stage history | [Delivery Plan](delivery-plan.md) |
 | Execution-ready scope for each epic | [Epic Files](epics/) |
 
 ---
@@ -104,6 +175,6 @@ flowchart LR
 ## Counting Rules
 
 - Issue counts come from the 52-item execution plan in [delivery-plan.md](delivery-plan.md).
-- Completed work includes Epics 1-5 only (`36` issues).
-- Remaining work includes Epic 6 (`3` issues) and Epic 7 (`13` issues).
-- The documentation follow-up item in Wave 8 is tracked separately and is not counted in the `52` issue total.
+- Completed work includes Epics 1–5 (36 issues).
+- Remaining work includes Epic 6 (3 issues) and Epic 7 (13 issues).
+- The documentation follow-up in Wave 8 is tracked separately and not counted in the 52-issue total.
