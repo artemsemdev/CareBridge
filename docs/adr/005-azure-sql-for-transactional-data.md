@@ -10,7 +10,7 @@ Each microservice in CareBridge (see [ADR-001](./001-microservices-architecture.
 
 All of these workloads are relational in nature: they involve structured schemas, referential integrity within a service boundary, transactional writes (often multi-row), and query patterns that benefit from SQL joins and indexes. The question is which managed relational database to use.
 
-The platform is built on .NET 10 with ASP.NET Core and uses Entity Framework Core as the data access layer. EF Core's provider ecosystem and migration tooling vary in maturity across database engines. The choice of relational database should align with the .NET ecosystem while remaining a defensible production choice.
+The platform is built on .NET 9 with ASP.NET Core and uses Entity Framework Core as the data access layer. EF Core's provider ecosystem and migration tooling vary in maturity across database engines. The choice of relational database should align with the .NET ecosystem while remaining a defensible production choice.
 
 ## Decision
 

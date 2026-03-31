@@ -483,7 +483,7 @@ Builds denormalized read models for fast dashboard and timeline views.
 ## 14. Recommended Technology Stack
 
 ### Backend
-- .NET 10
+- .NET 9
 - ASP.NET Core
 - Minimal APIs or clean REST APIs per service
 - background workers for asynchronous processing

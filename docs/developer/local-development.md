@@ -1,7 +1,7 @@
 # Local Development Guide
 
 **Document type:** Developer onboarding
-**Last updated:** 2026-03-27
+**Last updated:** 2026-03-31
 
 ---
 
@@ -9,7 +9,7 @@
 
 | Tool | Version | Purpose |
 |---|---|---|
-| .NET SDK | 10.0+ | Build and run backend services |
+| .NET SDK | 9.0+ | Build and run backend services |
 | Node.js | 20+ | Build and run React frontend |
 | Docker Desktop | Latest | Run infrastructure dependencies |
 | Azure CLI | Latest | Cloud deployment (optional for local dev) |
@@ -32,7 +32,7 @@ carebridge/
 │   │   ├── task-service/
 │   │   ├── appointment-service/
 │   │   ├── notification-service/
-│   │   ├── audit-service/
+│   │   ├── audit-service/     # Placeholder scaffold for Epic 6
 │   │   └── reporting-service/
 │   ├── web/
 │   │   └── carebridge-ui/     # React frontend
@@ -41,8 +41,8 @@ carebridge/
 ├── infra/terraform/
 ├── deploy/helm/
 ├── tools/
-│   ├── synthetic-data-generator/
-│   └── scenario-runner/
+│   ├── db-migrator/
+│   └── synthetic-data-generator/ # Placeholder scaffold for Epic 7
 └── docker-compose.yml
 ```
 
@@ -62,30 +62,31 @@ This starts:
 |---|---|---|---|
 | SQL Server (Linux) | 1433 | Transactional databases | Azure SQL |
 | RabbitMQ | 5672, 15672 (management UI) | Message broker | Azure Service Bus |
-| Redis | 6379 | Caching | Azure Cache for Redis |
 | Azurite | 10000-10002 | Blob/Queue/Table storage emulator | Azure Storage |
 
 ### First-Time Setup
 
 ```bash
 # Apply database migrations for all services
-dotnet run --project tools/db-migrator
-
-# Seed synthetic data
-dotnet run --project tools/synthetic-data-generator
+dotnet run --project tools/db-migrator/CareBridge.DbMigrator
 ```
 
 ### Start All Services
 
 ```bash
-# Option 1: Run all services via docker-compose
-docker-compose --profile services up -d
-
-# Option 2: Run individual services for development
-dotnet run --project src/gateway
-dotnet run --project src/services/case-service
-# ... etc.
+# Run implemented backend services in separate terminals
+dotnet run --project src/services/case-service/CareBridge.CaseService
+dotnet run --project src/services/careplan-service/CareBridge.CarePlanService
+dotnet run --project src/services/observation-service/CareBridge.ObservationService
+dotnet run --project src/services/caregap-engine/CareBridge.CareGapEngine
+dotnet run --project src/services/task-service/CareBridge.TaskService
+dotnet run --project src/services/appointment-service/CareBridge.AppointmentService
+dotnet run --project src/services/notification-service/CareBridge.NotificationService
+dotnet run --project src/services/reporting-service/CareBridge.ReportingService
+dotnet run --project src/gateway/CareBridge.Gateway
 ```
+
+At v0.5, `src/services/audit-service/` and `tools/synthetic-data-generator/` are scaffolds only and are not part of the runnable local stack yet.
 
 ### Service Ports
 
@@ -99,7 +100,6 @@ dotnet run --project src/services/case-service
 | Task Service | 5050 | http://localhost:5050 |
 | Appointment Service | 5060 | http://localhost:5060 |
 | Notification Service | 5070 | http://localhost:5070 |
-| Audit Service | 5080 | http://localhost:5080 |
 | Reporting Service | 5090 | http://localhost:5090 |
 | React Frontend | 5173 | http://localhost:5173 |
 
@@ -110,7 +110,7 @@ dotnet run --project src/services/case-service
 For focused development on a single service:
 
 ```bash
-cd src/services/case-service
+cd src/services/case-service/CareBridge.CaseService
 dotnet run
 ```
 
@@ -152,26 +152,13 @@ npm run dev
 
 ## Synthetic Data
 
-### Generate Data
+Synthetic data tooling is planned after v0.5. The `tools/synthetic-data-generator/` directory exists as a scaffold, but there is no runnable generator or scenario runner in the repository yet.
 
-```bash
-# Generate a full dataset: patients, discharge bundles, observations
-dotnet run --project tools/synthetic-data-generator
+For now, walk the system manually through the implemented APIs and UI:
 
-# Generate a specific scenario
-dotnet run --project tools/synthetic-data-generator -- --scenario standard-followup
-dotnet run --project tools/synthetic-data-generator -- --scenario abnormal-reading
-dotnet run --project tools/synthetic-data-generator -- --scenario missed-milestone
-```
-
-### Run Demo Scenario
-
-```bash
-# Execute the full demo flow: discharge → case → care plan → observations → alerts → tasks
-dotnet run --project tools/scenario-runner
-```
-
-The scenario runner submits data through the API and waits for each stage to complete, providing a full end-to-end walkthrough.
+- Create a case through the BFF or the React UI.
+- Add observations to trigger care-gap evaluation and alert generation.
+- Review the resulting tasks, appointments, dashboard updates, and case timeline.
 
 ---
 

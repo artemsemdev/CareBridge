@@ -587,7 +587,7 @@ Jobs:
 
 **1. Build and Test (.NET):**
 - Checkout
-- Setup .NET 10
+- Setup .NET 9
 - Cache NuGet packages
 - `dotnet restore`
 - `dotnet build --no-restore`

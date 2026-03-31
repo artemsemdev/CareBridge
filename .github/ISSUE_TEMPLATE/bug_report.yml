@@ -68,7 +68,7 @@ body:
     attributes:
       label: Environment
       description: Include OS, browser, runtime versions, and relevant local setup details.
-      placeholder: macOS 15, .NET 10 SDK, Node.js 20, Docker Desktop ...
+      placeholder: macOS 15, .NET 9 SDK, Node.js 20, Docker Desktop ...
     validations:
       required: false
 

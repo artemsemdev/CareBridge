@@ -2,7 +2,7 @@
 
 **Document type:** Observability architecture
 **Status:** Living document
-**Last updated:** 2026-03-27
+**Last updated:** 2026-03-31
 
 This document describes how CareBridge is observed in operation — what signals are emitted, how they are collected, and how engineers use them to understand system health and investigate issues. For related runbooks, see [docs/runbooks/](../runbooks/).
 
@@ -21,7 +21,7 @@ This document describes how CareBridge is observed in operation — what signals
 ## Logging Strategy
 
 ### Stack
-Application code (.NET 10) → `Microsoft.Extensions.Logging` + Serilog → OTEL Collector (DaemonSet) → Azure Monitor Logs (Log Analytics workspace)
+Application code (.NET 9) → `Microsoft.Extensions.Logging` + Serilog → OTEL Collector (DaemonSet) → Azure Monitor Logs (Log Analytics workspace)
 
 ### Structured Log Format
 Every log entry is structured JSON with consistent fields:

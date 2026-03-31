@@ -2,7 +2,7 @@
 
 **Cloud-Native Post-Discharge Care Coordination Platform**
 
-CareBridge is a reference implementation of a healthcare operations platform built on Azure and Kubernetes. It manages the first 30 days after hospital discharge for high-risk patients — coordinating outreach, monitoring, alerting, task management, and follow-up scheduling across a care team.
+CareBridge is a reference implementation of a healthcare operations platform targeting Azure and Kubernetes. It currently runs as a local-first microservices system and manages the first 30 days after hospital discharge for high-risk patients, coordinating outreach, monitoring, alerting, task management, and follow-up scheduling across a care team.
 
 > **Disclaimer:** This is a portfolio-grade reference implementation using **synthetic data only**. It is not a certified clinical platform, medical device, or production healthcare system. No real patient data is used anywhere in this project.
 
@@ -12,7 +12,7 @@ CareBridge is a reference implementation of a healthcare operations platform bui
 
 **v0.5 — Dashboard & Reporting** (completed 2026-03-31)
 
-The system currently implements the first five stages of the delivery plan:
+The system currently implements the first five stages of the delivery plan in local development:
 
 | Stage | What's Working |
 |---|---|
@@ -22,9 +22,9 @@ The system currently implements the first five stages of the delivery plan:
 | **Coordinator Workflows** | Task Service (CRUD + alert-to-task automation + state transitions), Appointment Service (full lifecycle), Notification Service (event-driven log-based delivery), task completion → milestone update, appointment completion → milestone update, React task management + appointment management |
 | **Dashboard & Reporting** | Reporting Service (consumes all 14 domain event types, EventId-based deduplication, in-memory read model store), operational dashboard API + React page (summary cards, alert queue, recent cases), case timeline API + React component (category filtering, sort toggle, pagination, relative timestamps) |
 
-**96 automated tests pass** (contract serialization, threshold evaluation, task/appointment state transitions, reporting service read models/dedup/timeline ordering). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
+**96 automated tests pass** (18 contract + 3 case service + 19 care-gap engine + 18 task service + 11 appointment service + 27 reporting service). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
 
-Services not yet implemented: Audit Service, cloud deployment, synthetic data generator.
+Still planned after v0.5: the queryable Audit Service, Azure deployment automation, and synthetic data generation tooling. `src/services/audit-service/` and `tools/synthetic-data-generator/` currently exist only as scaffolds.
 
 ---
 
@@ -55,23 +55,25 @@ The goal is to demonstrate practical, defensible skills in:
 | **Alerting** | Severity-classified alerts with acknowledgment and resolution lifecycle |
 | **Task Orchestration** | Create, assign, and track operational tasks for care coordinators |
 | **Appointment Scheduling** | Schedule and monitor follow-up appointments with reminder triggers |
-| **Notifications** | Template-based notifications via email, in-app, and simulated SMS |
+| **Notifications** | Rule-based notification records with channel selection and log-based delivery simulation |
 | **Case Timeline** | Unified chronological view of every event in a patient's post-discharge journey |
-| **Audit Trail** | Immutable, searchable audit log for all user and system actions |
-| **Operational Dashboard** | Real-time views of open alerts, overdue tasks, workload, and queue health |
+| **Audit Trail** | Planned in Epic 6: immutable, searchable audit log for all user and system actions |
+| **Operational Dashboard** | Live view of active cases, open alerts by severity/status, overdue tasks, pending appointments, recent cases, and top alerts |
 
 ---
 
 ## Architecture at a Glance
 
+The current implementation runs locally with SQL Server, RabbitMQ, and an in-memory reporting store. The diagram below shows the target Azure shape and marks the pieces that are still planned beyond v0.5.
+
 ```mermaid
 graph TB
     subgraph External
         UI[React Dashboard]
-        SIM[Synthetic Data Generator]
+        SIM[Synthetic Data Generator - planned]
     end
 
-    subgraph Azure Kubernetes Service
+    subgraph Target Azure Kubernetes Service
         BFF[API Gateway / BFF]
         CS[Case Service]
         CPS[Care Plan Service]
@@ -80,17 +82,17 @@ graph TB
         TS[Task Service]
         AS[Appointment Service]
         NS[Notification Service]
-        AUD[Audit Service]
+        AUD[Audit Service - planned]
         RPT[Reporting Service]
     end
 
-    subgraph Azure Managed Services
+    subgraph Target Azure Managed Services
         SQL[(Azure SQL)]
-        COSMOS[(Cosmos DB)]
+        COSMOS[(Cosmos DB - planned for reporting/audit)]
         SB[Service Bus]
-        FHIR[FHIR Service]
-        KV[Key Vault]
-        MON[Azure Monitor]
+        FHIR[FHIR Service - planned]
+        KV[Key Vault - planned]
+        MON[Azure Monitor - planned]
     end
 
     UI --> BFF
@@ -105,7 +107,7 @@ graph TB
     BFF & CS & CPS & OIS --> MON
 ```
 
-The system uses **domain-oriented microservices** communicating through **Azure Service Bus** for event-driven workflows. Each service owns its data. Synchronous calls flow through the BFF for UI aggregation; asynchronous events drive the core care coordination workflow.
+Today, the same service boundaries run locally with RabbitMQ standing in for Azure Service Bus, SQL Server standing in for Azure SQL, and `InMemoryReadModelStore` standing in for Cosmos DB on the reporting side. Each service owns its data. Synchronous calls flow through the BFF for UI aggregation; asynchronous events drive the core care coordination workflow.
 
 ---
 
@@ -113,19 +115,17 @@ The system uses **domain-oriented microservices** communicating through **Azure 
 
 | Layer | Technology |
 |---|---|
-| **Backend** | .NET 10, ASP.NET Core Minimal APIs, EF Core |
-| **Frontend** | React, TypeScript, Tailwind CSS |
-| **Container Orchestration** | Azure Kubernetes Service (AKS), Helm |
-| **Messaging** | Azure Service Bus (topics, subscriptions, dead-letter queues) |
-| **Transactional Data** | Azure SQL Database (per-service databases, elastic pool) |
-| **Read Models / Audit** | Azure Cosmos DB (NoSQL API, serverless tier) |
-| **Clinical Interoperability** | Azure Health Data Services FHIR R4 |
-| **Identity** | Microsoft Entra ID, AKS Workload Identity |
-| **Secrets** | Azure Key Vault, Secrets Store CSI Driver |
-| **Observability** | OpenTelemetry, Azure Monitor, Application Insights, Managed Prometheus, Managed Grafana |
-| **CI/CD** | GitHub Actions, OIDC federation to Azure |
-| **Infrastructure** | Terraform |
-| **Local Development** | Docker Compose, Azurite, RabbitMQ (Service Bus stand-in) |
+| **Backend** | .NET 9, ASP.NET Core Minimal APIs, EF Core |
+| **Frontend** | React, TypeScript, Tailwind CSS, React Router, React Query |
+| **Local Runtime** | Docker Compose, SQL Server, RabbitMQ, Azurite |
+| **Messaging** | RabbitMQ locally; Azure Service Bus is the target cloud equivalent |
+| **Transactional Data** | SQL Server locally; Azure SQL is the target cloud equivalent |
+| **Read Models / Audit** | In-memory reporting read models locally; Cosmos DB is planned for cloud read models and audit |
+| **Clinical Interoperability** | Azure Health Data Services FHIR R4 is planned beyond the current MVP |
+| **Identity** | Mock local auth today; Microsoft Entra ID and AKS Workload Identity are planned |
+| **Secrets** | Local `.env` configuration today; Azure Key Vault and CSI Driver are planned |
+| **Observability** | Shared service defaults and correlation IDs today; broader OTEL/Azure Monitor work is planned |
+| **CI/CD and Infra** | Local-first today; GitHub Actions, Helm, Terraform, and AKS deployment are planned |
 
 ---
 
@@ -133,42 +133,51 @@ The system uses **domain-oriented microservices** communicating through **Azure 
 
 Healthcare systems have specific architectural requirements that generic web applications don't face:
 
-- **Auditability** — Every state change must be traceable. CareBridge maintains an immutable audit trail with correlation IDs across all services.
+- **Auditability** — Every state change must be traceable. CareBridge already emits the domain events needed for traceability, and Epic 6 adds the immutable, queryable audit store.
 - **Data Sensitivity** — Even with synthetic data, the architecture enforces the patterns required for PHI protection: field-level access control, log scrubbing, encryption at rest and in transit.
-- **Interoperability** — FHIR R4 alignment through Azure Health Data Services enables standards-based clinical data exchange.
-- **Reliability** — Missed alerts or lost observations have clinical consequences. The event-driven architecture uses at-least-once delivery, idempotent processing, and dead-letter queues to prevent silent data loss.
-- **Operational Visibility** — Care teams need real-time views of patient status. The CQRS read model pattern ensures dashboard performance without compromising transactional integrity.
+- **Interoperability** — FHIR R4 alignment is part of the target Azure design and is intentionally deferred until after the current MVP slices.
+- **Reliability** — Missed alerts or lost observations have clinical consequences. The current event-driven architecture already uses at-least-once delivery and idempotent consumers; DLQ and circuit-breaker hardening are planned for later infrastructure work.
+- **Operational Visibility** — Care teams need real-time views of patient status. The CQRS read model pattern already powers the dashboard and case timeline without querying transactional databases.
 
 ---
 
 ## Local Development
 
 ```bash
-# Prerequisites: .NET 10 SDK, Node.js 20+, Docker Desktop
+# Prerequisites: .NET 9 SDK, Node.js 20+, Docker Desktop
 
 # Start infrastructure dependencies
 docker-compose up -d
 
 # Run database migrations
-dotnet run --project tools/db-migrator
+dotnet run --project tools/db-migrator/CareBridge.DbMigrator
 
-# Seed synthetic data
-dotnet run --project tools/synthetic-data-generator
-
-# Start all services
-dotnet run --project src/gateway
+# Start implemented backend services in separate terminals
+dotnet run --project src/services/case-service/CareBridge.CaseService
+dotnet run --project src/services/careplan-service/CareBridge.CarePlanService
+dotnet run --project src/services/observation-service/CareBridge.ObservationService
+dotnet run --project src/services/caregap-engine/CareBridge.CareGapEngine
+dotnet run --project src/services/task-service/CareBridge.TaskService
+dotnet run --project src/services/appointment-service/CareBridge.AppointmentService
+dotnet run --project src/services/notification-service/CareBridge.NotificationService
+dotnet run --project src/services/reporting-service/CareBridge.ReportingService
+dotnet run --project src/gateway/CareBridge.Gateway
 
 # Start the frontend
-cd src/web/carebridge-ui && npm install && npm run dev
+cd src/web/carebridge-ui
+npm install
+npm run dev
 ```
+
+At v0.5, the synthetic data generator and Audit Service are not runnable yet. Use the implemented APIs and UI flows for manual walkthroughs.
 
 See [Local Development Guide](docs/developer/local-development.md) for detailed setup instructions.
 
 ---
 
-## Azure Deployment
+## Planned Azure Deployment
 
-CareBridge deploys to Azure using GitHub Actions with OIDC federation (no stored credentials):
+The repository includes the deployment design for an Azure rollout using GitHub Actions with OIDC federation (no stored credentials), but the Terraform, Helm, and workflow implementation are still future work after v0.5:
 
 1. **Infrastructure** — Terraform provisions Azure resources (AKS, SQL, Cosmos DB, Service Bus, Key Vault, FHIR, ACR)
 2. **Build** — GitHub Actions builds, tests, scans, and pushes container images to ACR
@@ -200,22 +209,22 @@ carebridge/
 │   │   ├── task-service/
 │   │   ├── appointment-service/
 │   │   ├── notification-service/
-│   │   ├── audit-service/
+│   │   ├── audit-service/     # Placeholder scaffold for Epic 6
 │   │   └── reporting-service/
 │   ├── web/
 │   │   └── carebridge-ui/     # React frontend
-│   └── shared/                # Shared contracts, middleware, OTEL config
+│   └── shared/                # Shared contracts and infrastructure middleware
 ├── tests/
 │   ├── unit/
 │   ├── integration/
 │   └── contract/
 ├── infra/
-│   └── terraform/             # Azure infrastructure provisioning
+│   └── terraform/             # Planned Azure infrastructure provisioning
 ├── deploy/
-│   └── helm/                  # Helm charts per service
+│   └── helm/                  # Planned Helm charts per service
 ├── tools/
-│   ├── synthetic-data-generator/
-│   └── scenario-runner/
+│   ├── db-migrator/           # EF Core migration runner
+│   └── synthetic-data-generator/ # Placeholder scaffold for Epic 7
 └── .github/
     ├── ISSUE_TEMPLATE/        # Structured issue intake for bugs and feature requests
     ├── pull_request_template.md
@@ -279,12 +288,12 @@ carebridge/
 
 | Quality | Approach |
 |---|---|
-| **Performance** | CQRS with Cosmos DB read models. Case page p95 < 500ms. Dashboard p95 < 2s. |
-| **Scalability** | Designed for 10K active cases, 500K observations/day. HPA for API services, KEDA for event consumers. |
-| **Reliability** | At-least-once delivery, idempotent processing, dead-letter queues, circuit breakers. |
-| **Security** | Workload Identity (no static secrets), Entra ID RBAC, Key Vault, TLS everywhere, audit trail. |
-| **Observability** | OpenTelemetry traces + metrics + logs, Application Insights, Grafana dashboards, SLI/SLO tracking. |
-| **Maintainability** | Clean service boundaries, documented contracts, automated tests, CI validation gates. |
+| **Performance** | CQRS read models already back dashboard and timeline queries locally; Cosmos DB-backed read models are planned for cloud deployment. |
+| **Scalability** | Service boundaries and async workflows are in place; HPA/KEDA scale-out is part of the planned AKS rollout. |
+| **Reliability** | At-least-once delivery and idempotent consumers are implemented now; DLQ and circuit-breaker hardening are planned next. |
+| **Security** | Mock auth is used locally today; Entra ID, Workload Identity, Key Vault, and a full audit trail are planned. |
+| **Observability** | Correlation IDs and shared service defaults are in place; broader OpenTelemetry, Azure Monitor, and dashboarding are planned. |
+| **Maintainability** | Clean service boundaries, documented contracts, 96 passing tests, and delivery docs keep the codebase navigable. |
 
 ---
 
@@ -292,9 +301,9 @@ carebridge/
 
 **Solution Architecture** — Decomposing a healthcare workflow into bounded contexts with clear data ownership, synchronous and asynchronous communication patterns, and explicit trade-offs.
 
-**Azure Platform Knowledge** — Selecting and integrating Azure services for defensible architectural reasons, not because they appeared in a tutorial. Each choice has an [ADR](docs/adr/) explaining the rationale and alternatives considered.
+**Azure Platform Knowledge** — Selecting and documenting Azure services for defensible architectural reasons, not because they appeared in a tutorial. Each choice has an [ADR](docs/adr/) explaining the rationale and alternatives considered.
 
-**Kubernetes Maturity** — Namespace strategy, probe design, autoscaling (HPA + KEDA), Workload Identity, Helm-based deployment, resource management, and operational observability — not just "it runs in a container."
+**Kubernetes Delivery Design** — Namespace strategy, probe design, autoscaling (HPA + KEDA), Workload Identity, Helm-based deployment, resource management, and operational observability are documented as the next deployment stage, not hand-waved.
 
 **Event-Driven Design** — Service Bus topics, event-carried state transfer, eventual consistency, outbox pattern, dead-letter handling, and idempotent consumers — the patterns that matter when synchronous REST isn't enough.
 
