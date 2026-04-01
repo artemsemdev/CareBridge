@@ -2,6 +2,7 @@ import type {
   CaseResponse, CarePlanResponse, PaginatedResponse, ObservationResponse, AlertResponse,
   TaskResponse, CreateTaskRequest, AppointmentResponse, CreateAppointmentRequest,
   DashboardSummaryResponse, TimelineResponse,
+  AuditListResponse, AuditRecordDetail, AuditQueryParams,
 } from './types';
 
 // Security: All API calls route through the BFF gateway which handles authentication
@@ -106,6 +107,30 @@ export const api = {
     post<AppointmentResponse>('/api/appointments', data),
   updateAppointment: (id: string, body: { status?: string; notes?: string }) =>
     patch<AppointmentResponse>(`/api/appointments/${id}`, body),
+
+  // Audit
+  getAuditRecords: (params?: AuditQueryParams) => {
+    const qs = new URLSearchParams();
+    if (params?.caseId) qs.set('caseId', params.caseId);
+    if (params?.actorId) qs.set('actorId', params.actorId);
+    if (params?.entityType) qs.set('entityType', params.entityType);
+    if (params?.entityId) qs.set('entityId', params.entityId);
+    if (params?.eventType) qs.set('eventType', params.eventType);
+    if (params?.from) qs.set('from', params.from);
+    if (params?.to) qs.set('to', params.to);
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.cursor) qs.set('cursor', params.cursor);
+    const query = qs.toString() ? `?${qs}` : '';
+    return get<AuditListResponse>(`/api/audit${query}`);
+  },
+  getAuditRecord: (recordId: string) => get<AuditRecordDetail>(`/api/audit/${recordId}`),
+  getCaseAudit: (caseId: string, params?: { limit?: number; cursor?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.cursor) qs.set('cursor', params.cursor);
+    const query = qs.toString() ? `?${qs}` : '';
+    return get<AuditListResponse>(`/api/cases/${caseId}/audit${query}`);
+  },
 
   // Dashboard & Timeline
   getDashboardSummary: () => get<DashboardSummaryResponse>('/api/dashboard/summary'),

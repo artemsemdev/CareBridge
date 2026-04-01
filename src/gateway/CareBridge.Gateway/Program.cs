@@ -19,6 +19,7 @@ var careGapEngineUrl = services["CareGapEngine"] ?? "http://localhost:5040";
 var taskServiceUrl = services["TaskService"] ?? "http://localhost:5050";
 var appointmentServiceUrl = services["AppointmentService"] ?? "http://localhost:5060";
 var reportingServiceUrl = services["ReportingService"] ?? "http://localhost:5090";
+var auditServiceUrl = services["AuditService"] ?? "http://localhost:5080";
 
 builder.Services.AddHttpClient("CaseService", client =>
 {
@@ -59,6 +60,12 @@ builder.Services.AddHttpClient("AppointmentService", client =>
 builder.Services.AddHttpClient("ReportingService", client =>
 {
     client.BaseAddress = new Uri(reportingServiceUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+
+builder.Services.AddHttpClient("AuditService", client =>
+{
+    client.BaseAddress = new Uri(auditServiceUrl);
     client.Timeout = TimeSpan.FromSeconds(10);
 }).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
 
@@ -224,6 +231,27 @@ app.MapGet("/api/cases/{caseId:guid}/timeline", async (Guid caseId, HttpContext 
     var qs = ctx.Request.QueryString.Value ?? string.Empty;
     return await ProxyAsync(ctx, factory, "ReportingService", HttpMethod.Get,
         $"/api/v1/reports/timeline/{caseId}{qs}");
+});
+
+// --- Audit Service endpoints ---
+
+// GET /api/audit → Audit Service GET /api/v1/audit
+app.MapGet("/api/audit", async (HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "AuditService", HttpMethod.Get, $"/api/v1/audit{qs}");
+});
+
+// GET /api/audit/{recordId} → Audit Service GET /api/v1/audit/{recordId}
+app.MapGet("/api/audit/{recordId:guid}", async (Guid recordId, HttpContext ctx, IHttpClientFactory factory) =>
+    await ProxyAsync(ctx, factory, "AuditService", HttpMethod.Get, $"/api/v1/audit/{recordId}"));
+
+// GET /api/cases/{caseId}/audit → Audit Service GET /api/v1/audit?caseId={caseId}
+app.MapGet("/api/cases/{caseId:guid}/audit", async (Guid caseId, HttpContext ctx, IHttpClientFactory factory) =>
+{
+    var qs = ctx.Request.QueryString.Value ?? string.Empty;
+    return await ProxyAsync(ctx, factory, "AuditService", HttpMethod.Get,
+        $"/api/v1/audit?caseId={caseId}{(string.IsNullOrEmpty(qs) ? "" : "&" + qs.TrimStart('?'))}");
 });
 
 app.Run();

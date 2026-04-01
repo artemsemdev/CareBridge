@@ -10,7 +10,7 @@ CareBridge is a reference implementation of a healthcare operations platform tar
 
 ## Current Status
 
-**v0.5 — Dashboard & Reporting** (completed 2026-03-31)
+**v0.5 — Dashboard & Audit** (completed 2026-04-01)
 
 The system currently implements the first five stages of the delivery plan in local development:
 
@@ -21,10 +21,11 @@ The system currently implements the first five stages of the delivery plan in lo
 | **Monitoring & Alerting** | Observation Service (ingestion + validation + dedup), Care-Gap Engine (threshold evaluation + milestone scanning), alert lifecycle API, observations + alerts in React UI |
 | **Coordinator Workflows** | Task Service (CRUD + alert-to-task automation + state transitions), Appointment Service (full lifecycle), Notification Service (event-driven log-based delivery), task completion → milestone update, appointment completion → milestone update, React task management + appointment management |
 | **Dashboard & Reporting** | Reporting Service (consumes all 14 domain event types, EventId-based deduplication, in-memory read model store), operational dashboard API + React page (summary cards, alert queue, recent cases), case timeline API + React component (category filtering, sort toggle, pagination, relative timestamps) |
+| **Audit & Compliance** | Audit Service (consumes all 14 domain event types, immutable append-only store, idempotent by EventId, 5-retry policy), read-only query API (multi-dimensional filters, cursor pagination, ISO 8601 date ranges), BFF proxy endpoints, React standalone audit log page with filters and expandable JSON payload, case detail "Recent Activity" section with link to full audit trail |
 
-**96 automated tests pass** (18 contract + 3 case service + 19 care-gap engine + 18 task service + 11 appointment service + 27 reporting service). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
+**140 automated tests pass** (18 contract + 3 case service + 19 care-gap engine + 18 task service + 11 appointment service + 27 reporting service + 44 audit service). Solution builds with 0 warnings. Frontend TypeScript compiles cleanly.
 
-Still planned after v0.5: the queryable Audit Service, Azure deployment automation, and synthetic data generation tooling. `src/services/audit-service/` and `tools/synthetic-data-generator/` currently exist only as scaffolds.
+Still planned after v0.5: Azure deployment automation and synthetic data generation tooling. `tools/synthetic-data-generator/` currently exists only as a scaffold.
 
 ---
 
@@ -57,7 +58,7 @@ The goal is to demonstrate practical, defensible skills in:
 | **Appointment Scheduling** | Schedule and monitor follow-up appointments with reminder triggers |
 | **Notifications** | Rule-based notification records with channel selection and log-based delivery simulation |
 | **Case Timeline** | Unified chronological view of every event in a patient's post-discharge journey |
-| **Audit Trail** | Planned in Epic 6: immutable, searchable audit log for all user and system actions |
+| **Audit Trail** | Immutable, searchable audit log for all domain events with multi-dimensional filters and expandable event payloads |
 | **Operational Dashboard** | Live view of active cases, open alerts by severity/status, overdue tasks, pending appointments, recent cases, and top alerts |
 
 ---
@@ -82,7 +83,7 @@ graph TB
         TS[Task Service]
         AS[Appointment Service]
         NS[Notification Service]
-        AUD[Audit Service - planned]
+        AUD[Audit Service]
         RPT[Reporting Service]
     end
 
@@ -107,7 +108,7 @@ graph TB
     BFF & CS & CPS & OIS --> MON
 ```
 
-Today, the same service boundaries run locally with RabbitMQ standing in for Azure Service Bus, SQL Server standing in for Azure SQL, and `InMemoryReadModelStore` standing in for Cosmos DB on the reporting side. Each service owns its data. Synchronous calls flow through the BFF for UI aggregation; asynchronous events drive the core care coordination workflow.
+Today, the same service boundaries run locally with RabbitMQ standing in for Azure Service Bus, SQL Server standing in for Azure SQL, and in-memory stores standing in for Cosmos DB on the reporting and audit sides. Each service owns its data. Synchronous calls flow through the BFF for UI aggregation; asynchronous events drive the core care coordination workflow.
 
 ---
 
@@ -133,7 +134,7 @@ Today, the same service boundaries run locally with RabbitMQ standing in for Azu
 
 Healthcare systems have specific architectural requirements that generic web applications don't face:
 
-- **Auditability** — Every state change must be traceable. CareBridge already emits the domain events needed for traceability, and Epic 6 adds the immutable, queryable audit store.
+- **Auditability** — Every state change must be traceable. CareBridge captures all 14 domain event types into an immutable, queryable audit store with multi-dimensional search and full event payload inspection.
 - **Data Sensitivity** — Even with synthetic data, the architecture enforces the patterns required for PHI protection: field-level access control, log scrubbing, encryption at rest and in transit.
 - **Interoperability** — FHIR R4 alignment is part of the target Azure design and is intentionally deferred until after the current MVP slices.
 - **Reliability** — Missed alerts or lost observations have clinical consequences. The current event-driven architecture already uses at-least-once delivery and idempotent consumers; DLQ and circuit-breaker hardening are planned for later infrastructure work.
@@ -161,6 +162,7 @@ dotnet run --project src/services/task-service/CareBridge.TaskService
 dotnet run --project src/services/appointment-service/CareBridge.AppointmentService
 dotnet run --project src/services/notification-service/CareBridge.NotificationService
 dotnet run --project src/services/reporting-service/CareBridge.ReportingService
+dotnet run --project src/services/audit-service/CareBridge.AuditService
 dotnet run --project src/gateway/CareBridge.Gateway
 
 # Start the frontend
@@ -169,7 +171,7 @@ npm install
 npm run dev
 ```
 
-At v0.5, the synthetic data generator and Audit Service are not runnable yet. Use the implemented APIs and UI flows for manual walkthroughs.
+At v0.5, the synthetic data generator is not runnable yet. Use the implemented APIs and UI flows for manual walkthroughs.
 
 See [Local Development Guide](docs/developer/local-development.md) for detailed setup instructions.
 
@@ -209,7 +211,7 @@ carebridge/
 │   │   ├── task-service/
 │   │   ├── appointment-service/
 │   │   ├── notification-service/
-│   │   ├── audit-service/     # Placeholder scaffold for Epic 6
+│   │   ├── audit-service/     # Immutable audit trail (Epic 6)
 │   │   └── reporting-service/
 │   ├── web/
 │   │   └── carebridge-ui/     # React frontend
@@ -291,9 +293,9 @@ carebridge/
 | **Performance** | CQRS read models already back dashboard and timeline queries locally; Cosmos DB-backed read models are planned for cloud deployment. |
 | **Scalability** | Service boundaries and async workflows are in place; HPA/KEDA scale-out is part of the planned AKS rollout. |
 | **Reliability** | At-least-once delivery and idempotent consumers are implemented now; DLQ and circuit-breaker hardening are planned next. |
-| **Security** | Mock auth is used locally today; Entra ID, Workload Identity, Key Vault, and a full audit trail are planned. |
+| **Security** | Mock auth is used locally today; an immutable audit trail is implemented. Entra ID, Workload Identity, and Key Vault are planned for cloud deployment. |
 | **Observability** | Correlation IDs and shared service defaults are in place; broader OpenTelemetry, Azure Monitor, and dashboarding are planned. |
-| **Maintainability** | Clean service boundaries, documented contracts, 96 passing tests, and delivery docs keep the codebase navigable. |
+| **Maintainability** | Clean service boundaries, documented contracts, 140 passing tests, and delivery docs keep the codebase navigable. |
 
 ---
 

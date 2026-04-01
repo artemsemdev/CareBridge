@@ -30,11 +30,11 @@ Every domain event is captured as an immutable audit record. The audit trail is 
 
 ## Exit Criteria
 
-- [ ] Every domain event from all services creates an immutable audit record
-- [ ] Audit records are not modifiable (no update or delete API)
-- [ ] Audit trail queryable by case, actor, action type, entity, date range
-- [ ] Audit section visible on case detail page
-- [ ] Standalone audit log page with all filter dimensions works
+- [x] Every domain event from all services creates an immutable audit record
+- [x] Audit records are not modifiable (no update or delete API)
+- [x] Audit trail queryable by case, actor, action type, entity, date range
+- [x] Audit section visible on case detail page
+- [x] Standalone audit log page with all filter dimensions works
 
 ---
 
@@ -148,13 +148,13 @@ In-memory implementation:
 - In the Cosmos DB implementation (future), use a read-only access policy for query endpoints
 
 **Acceptance criteria:**
-- [ ] Audit Service starts and subscribes to all 14 domain event types
-- [ ] Each domain event creates exactly one audit record
-- [ ] Audit records include: eventType, action, actor, entityType, entityId, caseId, correlationId, full event payload
-- [ ] Duplicate events (same EventId) do not create duplicate audit records
-- [ ] Failed processing retries up to 5 times before dead-lettering
-- [ ] No update or delete operations exist on the store interface
-- [ ] In-memory store is thread-safe
+- [x] Audit Service starts and subscribes to all 14 domain event types
+- [x] Each domain event creates exactly one audit record
+- [x] Audit records include: eventType, action, actor, entityType, entityId, caseId, correlationId, full event payload
+- [x] Duplicate events (same EventId) do not create duplicate audit records
+- [x] Failed processing retries up to 5 times before dead-lettering
+- [x] No update or delete operations exist on the store interface
+- [x] In-memory store is thread-safe
 
 **Dependencies:** All event-producing services
 
@@ -205,14 +205,14 @@ AuditListResponse
 **No mutation endpoints.** There are no POST, PUT, PATCH, or DELETE endpoints on this service. The only way to create audit records is through event consumption.
 
 **Acceptance criteria:**
-- [ ] All filter dimensions work individually and in combination
-- [ ] Cursor-based pagination works correctly
-- [ ] Detail endpoint returns full payload as JSON object
-- [ ] List endpoint returns summary (without payload) for performance
-- [ ] No PUT, PATCH, or DELETE endpoints exist (verified by test or inspection)
-- [ ] TotalCount reflects total matching records
-- [ ] Timestamp-range queries work correctly with ISO 8601 dates
-- [ ] Empty result set returns empty list (not 404)
+- [x] All filter dimensions work individually and in combination
+- [x] Cursor-based pagination works correctly
+- [x] Detail endpoint returns full payload as JSON object
+- [x] List endpoint returns summary (without payload) for performance
+- [x] No PUT, PATCH, or DELETE endpoints exist (verified by test or inspection)
+- [x] TotalCount reflects total matching records
+- [x] Timestamp-range queries work correctly with ISO 8601 dates
+- [x] Empty result set returns empty list (not 404)
 
 **Dependencies:** A6-01
 
@@ -255,13 +255,13 @@ Sidebar navigation:
 - "Audit" link activates the audit page
 
 **Acceptance criteria:**
-- [ ] Audit section on case detail page shows recent activity for that case
-- [ ] Standalone audit page (`/audit`) shows all audit records with working filters
-- [ ] All filter controls work individually and combined
-- [ ] Expandable row shows full event payload as formatted JSON
-- [ ] Date range filter works correctly
-- [ ] Pagination works
-- [ ] Clicking a case link navigates to the case detail page
-- [ ] "View full audit trail" link from case detail pre-fills the caseId filter
+- [x] Audit section on case detail page shows recent activity for that case
+- [x] Standalone audit page (`/audit`) shows all audit records with working filters
+- [x] All filter controls work individually and combined
+- [x] Expandable row shows full event payload as formatted JSON
+- [x] Date range filter works correctly
+- [x] Pagination works
+- [x] Clicking a case link navigates to the case detail page
+- [x] "View full audit trail" link from case detail pre-fills the caseId filter
 
 **Dependencies:** A6-02, C2-09

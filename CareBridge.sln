@@ -49,6 +49,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareBridge.AppointmentServi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareBridge.ReportingService.UnitTests", "tests\unit\CareBridge.ReportingService.UnitTests\CareBridge.ReportingService.UnitTests.csproj", "{D05067B5-3FBB-47A2-9568-61EC694B3033}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CareBridge.AuditService.UnitTests", "tests\unit\CareBridge.AuditService.UnitTests\CareBridge.AuditService.UnitTests.csproj", "{B64EE9D4-5B84-407B-8605-660F1B15BC6E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -287,6 +289,18 @@ Global
 		{D05067B5-3FBB-47A2-9568-61EC694B3033}.Release|x64.Build.0 = Release|Any CPU
 		{D05067B5-3FBB-47A2-9568-61EC694B3033}.Release|x86.ActiveCfg = Release|Any CPU
 		{D05067B5-3FBB-47A2-9568-61EC694B3033}.Release|x86.Build.0 = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|x64.Build.0 = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Debug|x86.Build.0 = Debug|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|x64.ActiveCfg = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|x64.Build.0 = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|x86.ActiveCfg = Release|Any CPU
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -313,5 +327,6 @@ Global
 		{84624239-3FDF-40FD-A085-0BD9F96D0F0D} = {9D556B49-86D1-93A7-9596-FFAAB74EC556}
 		{E7B637D7-ED08-4667-94DF-99D8A60A4511} = {9D556B49-86D1-93A7-9596-FFAAB74EC556}
 		{D05067B5-3FBB-47A2-9568-61EC694B3033} = {9D556B49-86D1-93A7-9596-FFAAB74EC556}
+		{B64EE9D4-5B84-407B-8605-660F1B15BC6E} = {9D556B49-86D1-93A7-9596-FFAAB74EC556}
 	EndGlobalSection
 EndGlobal

@@ -32,7 +32,7 @@ carebridge/
 │   │   ├── task-service/
 │   │   ├── appointment-service/
 │   │   ├── notification-service/
-│   │   ├── audit-service/     # Placeholder scaffold for Epic 6
+│   │   ├── audit-service/     # Immutable audit trail (Epic 6)
 │   │   └── reporting-service/
 │   ├── web/
 │   │   └── carebridge-ui/     # React frontend
@@ -83,10 +83,11 @@ dotnet run --project src/services/task-service/CareBridge.TaskService
 dotnet run --project src/services/appointment-service/CareBridge.AppointmentService
 dotnet run --project src/services/notification-service/CareBridge.NotificationService
 dotnet run --project src/services/reporting-service/CareBridge.ReportingService
+dotnet run --project src/services/audit-service/CareBridge.AuditService
 dotnet run --project src/gateway/CareBridge.Gateway
 ```
 
-At v0.5, `src/services/audit-service/` and `tools/synthetic-data-generator/` are scaffolds only and are not part of the runnable local stack yet.
+At v0.5, `tools/synthetic-data-generator/` is a scaffold only and is not part of the runnable local stack yet.
 
 ### Service Ports
 
@@ -101,6 +102,7 @@ At v0.5, `src/services/audit-service/` and `tools/synthetic-data-generator/` are
 | Appointment Service | 5060 | http://localhost:5060 |
 | Notification Service | 5070 | http://localhost:5070 |
 | Reporting Service | 5090 | http://localhost:5090 |
+| Audit Service | 5080 | http://localhost:5080 |
 | React Frontend | 5173 | http://localhost:5173 |
 
 ---
