@@ -154,6 +154,7 @@ flowchart LR
 | Visual top-level status | [Delivery Dashboard](README.md) _(this file)_ |
 | Detailed execution plan and stage history | [Delivery Plan](delivery-plan.md) |
 | Execution-ready scope for each epic | [Epic Files](epics/) |
+| How to introduce additional committed work | [How to Add New Scope](how-to-add-new-scope.md) |
 
 ---
 
