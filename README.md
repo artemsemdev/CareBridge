@@ -12,7 +12,7 @@ CareBridge is a reference implementation of a healthcare operations platform tar
 
 **v0.5 — Dashboard & Audit** (completed 2026-04-01)
 
-The system currently implements the first five stages of the delivery plan in local development:
+The system currently implements the first six stages of the delivery plan in local development:
 
 | Stage | What's Working |
 |---|---|
@@ -248,7 +248,7 @@ carebridge/
 - [API and Event Contracts](docs/architecture/api-and-event-contracts.md) — REST conventions, event envelope, schema evolution, sample payloads
 
 ### Decisions
-- [Architecture Decision Records](docs/adr/) — 10 ADRs covering key technology and design choices
+- [Architecture Decision Records](docs/adr/) — 11 ADRs covering key technology and design choices
 
 ### Operations
 - [Incident Response](docs/runbooks/incident-response.md)
