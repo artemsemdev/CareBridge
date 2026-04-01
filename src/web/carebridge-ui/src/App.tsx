@@ -5,6 +5,7 @@ import { CasesPage } from './pages/CasesPage'
 import { CaseDetailPage } from './pages/CaseDetailPage'
 import { AlertsPage } from './pages/AlertsPage'
 import { TasksPage } from './pages/TasksPage'
+import { AuditPage } from './pages/AuditPage'
 
 function NotFoundPage() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="cases/:caseId" element={<CaseDetailPage />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="tasks" element={<TasksPage />} />
+        <Route path="audit" element={<AuditPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

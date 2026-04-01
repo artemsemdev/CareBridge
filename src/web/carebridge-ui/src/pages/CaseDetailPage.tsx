@@ -6,6 +6,7 @@ import { CaseTimeline } from '../components/CaseTimeline';
 import type {
   CaseStatus, MilestoneStatus, ObservationResponse, AlertResponse, AlertSeverity,
   TaskResponse, TaskStatus, TaskPriority, AppointmentResponse, AppointmentStatus, AppointmentType,
+  AuditRecordSummary,
 } from '../api/types';
 
 // PHI: This page displays patient demographics (name, ID, diagnosis) and clinical data
@@ -376,6 +377,9 @@ export function CaseDetailPage() {
       {/* Appointments section */}
       <AppointmentsSection caseId={caseId!} />
 
+      {/* Recent Activity (Audit) */}
+      <RecentActivitySection caseId={caseId!} />
+
       {/* Timeline */}
       <CaseTimeline caseId={caseId!} />
     </div>
@@ -574,6 +578,47 @@ function CreateAppointmentForm({ caseId, onClose }: { caseId: string; onClose: (
         <button onClick={() => createBooked.mutate()} disabled={isPending || !form.scheduledAt}
           className="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">Book</button>
       </div>
+    </div>
+  );
+}
+
+function RecentActivitySection({ caseId }: { caseId: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['case-audit', caseId],
+    queryFn: () => api.getCaseAudit(caseId, { limit: 10 }),
+    enabled: !!caseId,
+  });
+  const count = data?.totalCount ?? 0;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-gray-700">Recent Activity ({count})</h3>
+        <Link
+          to={`/audit?caseId=${caseId}`}
+          className="text-xs text-blue-600 hover:underline"
+        >
+          View full audit trail
+        </Link>
+      </div>
+      {isLoading ? (
+        <div className="animate-pulse h-16 bg-gray-50 rounded" />
+      ) : !data || data.items.length === 0 ? (
+        <p className="text-sm text-gray-400">No activity recorded yet.</p>
+      ) : (
+        <div className="space-y-1">
+          {data.items.map((record: AuditRecordSummary) => (
+            <div key={record.id} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
+              <span className="text-xs text-gray-400 whitespace-nowrap w-36 shrink-0">
+                {formatDateTime(record.timestamp)}
+              </span>
+              <span className="text-sm text-gray-900">{record.action}</span>
+              <span className="text-xs text-gray-500">{record.actorId}</span>
+              <span className="ml-auto text-xs text-gray-400">{record.entityType}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

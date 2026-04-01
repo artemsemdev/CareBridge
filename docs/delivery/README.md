@@ -1,7 +1,7 @@
 # Delivery Dashboard
 
 **Status:** Living document — updated after each completed issue
-**Last updated:** 2026-03-31
+**Last updated:** 2026-04-01
 **Scope:** CareBridge MVP — 52 issues across 7 epics, delivered in 8 waves
 
 ---
@@ -10,23 +10,23 @@
 
 ```text
 
-  ██████████████░░░░░░  69% COMPLETE  ·  36 of 52 issues delivered
+  ███████████████░░░░░  75% COMPLETE  ·  39 of 52 issues delivered
 
 ```
 
 | Metric | Value |
 |--------|------:|
-| Issues completed | **36** / 52 |
-| Epics completed | **5** / 7 |
-| Waves fully completed | **4** / 8 |
-| Current wave | Wave 5 — Dashboard & Audit (6 / 9) |
-| Unit tests passing | **96** |
-| Next up | `A6-01` Audit Service event consumer |
+| Issues completed | **39** / 52 |
+| Epics completed | **6** / 7 |
+| Waves fully completed | **5** / 8 |
+| Current wave | Wave 5 — Dashboard & Audit (9 / 9) DONE |
+| Unit tests passing | **140** |
+| Next up | `H-01` Health endpoints across all services |
 
 ```mermaid
 pie title Issue Completion
-    "Completed (36)" : 36
-    "Remaining (16)" : 16
+    "Completed (39)" : 39
+    "Remaining (13)" : 13
 ```
 
 ---
@@ -38,7 +38,7 @@ Wave 1 · Foundation       █████████████████�
 Wave 2 · Case Intake      ████████████████████  9/9   100%  DONE
 Wave 3 · Monitoring       ████████████████████  7/7   100%  DONE
 Wave 4 · Coordinator      ████████████████████  8/8   100%  DONE
-Wave 5 · Dashboard/Audit  █████████████░░░░░░░  6/9    67%  IN PROGRESS
+Wave 5 · Dashboard/Audit  ████████████████████  9/9   100%  DONE
 Wave 6 · Hardening        ░░░░░░░░░░░░░░░░░░░░  0/5     0%  PLANNED
 Wave 7 · Cloud Deploy     ░░░░░░░░░░░░░░░░░░░░  0/6     0%  PLANNED
 Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░░░░  0/2     0%  PLANNED
@@ -55,20 +55,12 @@ Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░�
 | 3 | Remote Monitoring & Alerting | 7 / 7 (100%) | Done |
 | 4 | Coordinator Workflows | 8 / 8 (100%) | Done |
 | 5 | Dashboard, Timeline & Reporting | 6 / 6 (100%) | Done |
-| 6 | Audit & Compliance | 0 / 3 (0%) | Next |
+| 6 | Audit & Compliance | 3 / 3 (100%) | Done |
 | 7 | Infrastructure & Cloud Deployment | 0 / 13 (0%) | Planned |
 
 ---
 
 ## Remaining Work
-
-### Audit & Compliance — 3 issues · Next
-
-| ID | Issue | Depends On |
-|----|-------|------------|
-| A6-01 | Audit Service event consumer and storage | Epic 5 (done) |
-| A6-02 | Audit Service query API | A6-01 |
-| A6-03 | BFF and React audit trail view | A6-02 |
 
 ### Hardening & Observability — 5 issues · Wave 6
 
@@ -108,7 +100,7 @@ Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░�
 | v0.2 | Case Pipeline — first vertical slice: discharge to UI | **Done** |
 | v0.3 | Monitoring Loop — observations in, alerts out, visible in UI | **Done** |
 | v0.4 | Operational Workflows — tasks, appointments, notifications | **Done** |
-| v0.5 | Dashboard & Audit — CQRS proven, full UI | **In Progress** |
+| v0.5 | Dashboard & Audit — CQRS proven, full UI, immutable audit trail | **Done** |
 | v0.6 | Hardened — observability and resilience patterns | Planned |
 | v0.7 | Cloud-Deployed — running on Azure AKS | Planned |
 | v1.0 | Demo-Ready — portfolio release | Planned |
@@ -125,12 +117,7 @@ flowchart LR
         E3[Monitoring]
         E4[Coordinator]
         E5[Dashboard]
-    end
-
-    subgraph "Up Next"
-        A1[A6-01 Audit Storage]
-        A2[A6-02 Audit API]
-        A3[A6-03 Audit UI]
+        E6[Audit]
     end
 
     subgraph Planned
@@ -145,18 +132,16 @@ flowchart LR
         W[I7-08 Demo]
     end
 
-    E1 --> E2 --> E3 --> E4 --> E5 --> A1 --> A2 --> A3 --> H
+    E1 --> E2 --> E3 --> E4 --> E5 --> E6 --> H
     H --> D1 --> D2 --> CD
     H --> T1 --> T2 --> CD
     H --> CI --> CD
     CD --> G --> W
 
     classDef done fill:#d9f99d,stroke:#3f6212,color:#111827;
-    classDef next fill:#fde68a,stroke:#92400e,color:#111827;
     classDef later fill:#e5e7eb,stroke:#6b7280,color:#111827;
 
-    class E1,E2,E3,E4,E5 done;
-    class A1,A2,A3 next;
+    class E1,E2,E3,E4,E5,E6 done;
     class H,D1,D2,T1,T2,CI,CD,G,W later;
 ```
 
@@ -169,12 +154,13 @@ flowchart LR
 | Visual top-level status | [Delivery Dashboard](README.md) _(this file)_ |
 | Detailed execution plan and stage history | [Delivery Plan](delivery-plan.md) |
 | Execution-ready scope for each epic | [Epic Files](epics/) |
+| How to introduce additional committed work | [How to Add New Scope](how-to-add-new-scope.md) |
 
 ---
 
 ## Counting Rules
 
 - Issue counts come from the 52-item execution plan in [delivery-plan.md](delivery-plan.md).
-- Completed work includes Epics 1–5 (36 issues).
-- Remaining work includes Epic 6 (3 issues) and Epic 7 (13 issues).
+- Completed work includes Epics 1–6 (39 issues).
+- Remaining work includes Epic 7 (13 issues).
 - The documentation follow-up in Wave 8 is tracked separately and not counted in the 52-issue total.

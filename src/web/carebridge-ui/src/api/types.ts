@@ -176,6 +176,44 @@ export interface DashboardSummaryResponse {
   lastUpdatedAt: string;
 }
 
+// Audit types
+export interface AuditRecordSummary {
+  id: string;
+  timestamp: string;
+  correlationId: string;
+  eventType: string;
+  action: string;
+  actorId: string;
+  actorRole: string;
+  entityType: string;
+  entityId: string;
+  caseId: string;
+  serviceSource: string;
+}
+
+export interface AuditRecordDetail extends AuditRecordSummary {
+  payload: Record<string, unknown>;
+}
+
+export interface AuditListResponse {
+  items: AuditRecordSummary[];
+  nextCursor: string | null;
+  hasMore: boolean;
+  totalCount: number;
+}
+
+export interface AuditQueryParams {
+  caseId?: string;
+  actorId?: string;
+  entityType?: string;
+  entityId?: string;
+  eventType?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  cursor?: string;
+}
+
 // Timeline types
 export type TimelineCategory = 'case' | 'careplan' | 'observation' | 'alert' | 'task' | 'appointment' | 'notification';
 

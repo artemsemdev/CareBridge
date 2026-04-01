@@ -18,13 +18,13 @@ namespace CareBridge.Shared.Infrastructure.Eventing;
 public class EventConsumerBackgroundService : BackgroundService
 {
     private const string ExchangeName = "carebridge.events";
-    private const int MaxRetries = 3;
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<EventConsumerBackgroundService> _logger;
     private readonly string _queueName;
     private readonly string[] _routingKeys;
     private readonly Dictionary<string, Type> _eventTypeMap;
+    private readonly int _maxRetries;
     private IConnection? _connection;
     private IChannel? _channel;
 
@@ -39,6 +39,7 @@ public class EventConsumerBackgroundService : BackgroundService
         _queueName = options.QueueName;
         _routingKeys = options.RoutingKeys;
         _eventTypeMap = options.EventTypeMap;
+        _maxRetries = options.MaxRetries;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -76,14 +77,14 @@ public class EventConsumerBackgroundService : BackgroundService
             {
                 _logger.LogError(ex, "Error processing message from queue {Queue}", _queueName);
                 var retryCount = GetRetryCount(ea.BasicProperties);
-                if (retryCount < MaxRetries)
+                if (retryCount < _maxRetries)
                 {
                     await _channel.BasicNackAsync(ea.DeliveryTag, false, true, stoppingToken);
                 }
                 else
                 {
                     _logger.LogWarning("Message exceeded max retries ({MaxRetries}), discarding. DeliveryTag: {DeliveryTag}",
-                        MaxRetries, ea.DeliveryTag);
+                        _maxRetries, ea.DeliveryTag);
                     await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
                 }
             }
@@ -157,4 +158,5 @@ public class EventConsumerOptions
     public string QueueName { get; set; } = string.Empty;
     public string[] RoutingKeys { get; set; } = [];
     public Dictionary<string, Type> EventTypeMap { get; set; } = new();
+    public int MaxRetries { get; set; } = 3;
 }
