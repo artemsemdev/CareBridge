@@ -351,27 +351,27 @@ The order below optimizes for three goals: unblocking dependent work early, achi
 
 **Milestone: Full operational loop — alert → task → resolution → milestone completion. ✓ ACHIEVED**
 
-### Wave 5: Dashboard, Timeline, and Audit — PARTIALLY COMPLETE 2026-03-31
+### Wave 5: Dashboard, Timeline, and Audit — COMPLETED 2026-04-01
 31. ~~**D5-01** — Reporting Service event consumers~~ DONE
 32. ~~**D5-02** — Dashboard read model + API~~ DONE
 33. ~~**D5-03** — Timeline read model + API~~ DONE
 34. ~~**D5-04** — BFF dashboard endpoint~~ DONE
 35. ~~**D5-05** — React operational dashboard~~ DONE
 36. ~~**D5-06** — React case timeline~~ DONE
-37. **A6-01** — Audit Service event consumer + storage
-38. **A6-02** — Audit query API
-39. **A6-03** — React audit trail view
+37. ~~**A6-01** — Audit Service event consumer + storage~~ DONE
+38. ~~**A6-02** — Audit query API~~ DONE
+39. ~~**A6-03** — React audit trail view~~ DONE
 
-**Milestone status:** Dashboard and timeline are working. Audit remains to complete Wave 5.
+**Milestone: Dashboard, timeline, and audit trail all working. ✓ ACHIEVED**
 
-### Wave 6: Hardening
-40. Health endpoints across all services
-41. Structured JSON logging standardization
-42. OpenTelemetry trace integration
-43. Circuit breaker for inter-service HTTP calls
-44. Error handling review and edge case coverage
+### Wave 6: Hardening — COMPLETED 2026-04-02
+40. ~~**H-01** — Health endpoints across all services~~ DONE
+41. ~~**H-02** — Structured JSON logging standardization~~ DONE
+42. ~~**H-03** — OpenTelemetry trace integration~~ DONE
+43. ~~**H-04** — Circuit breaker for inter-service HTTP calls~~ DONE
+44. ~~**H-05** — Error handling review and edge case coverage~~ DONE
 
-**Milestone: Observability and resilience patterns demonstrated.**
+**Milestone: Observability and resilience patterns demonstrated. ✓ ACHIEVED**
 
 ### Wave 7: Cloud Deployment
 45. **I7-01** — Dockerfiles
