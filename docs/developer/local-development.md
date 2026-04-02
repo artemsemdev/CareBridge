@@ -1,7 +1,7 @@
 # Local Development Guide
 
 **Document type:** Developer onboarding
-**Last updated:** 2026-03-31
+**Last updated:** 2026-04-02
 
 ---
 
@@ -87,7 +87,7 @@ dotnet run --project src/services/audit-service/CareBridge.AuditService
 dotnet run --project src/gateway/CareBridge.Gateway
 ```
 
-At v0.5, `tools/synthetic-data-generator/` is a scaffold only and is not part of the runnable local stack yet.
+At v0.6, `tools/synthetic-data-generator/` is a scaffold only and is not part of the runnable local stack yet.
 
 ### Service Ports
 
@@ -154,7 +154,7 @@ npm run dev
 
 ## Synthetic Data
 
-Synthetic data tooling is planned after v0.5. The `tools/synthetic-data-generator/` directory exists as a scaffold, but there is no runnable generator or scenario runner in the repository yet.
+Synthetic data tooling is planned after v0.6. The `tools/synthetic-data-generator/` directory exists as a scaffold, but there is no runnable generator or scenario runner in the repository yet.
 
 For now, walk the system manually through the implemented APIs and UI:
 
