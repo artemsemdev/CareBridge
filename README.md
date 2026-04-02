@@ -35,47 +35,9 @@ Detailed progress lives in [Delivery Dashboard](docs/delivery/README.md) and [De
 
 Prerequisites: `.NET 9`, `Node.js 20+`, `Docker Desktop`
 
-```bash
-docker-compose up -d
-dotnet run --project tools/db-migrator/CareBridge.DbMigrator
-```
-
-Start the backend services listed in [Local Development Guide](docs/developer/local-development.md), then start the frontend:
-
-```bash
-cd src/web/carebridge-ui
-npm install
-npm run dev
-```
-
-Useful local endpoints:
-
-- UI: `http://localhost:5173`
-- Gateway / BFF: `http://localhost:5000`
-- Example health checks: `http://localhost:5000/ready`, `http://localhost:5010/healthz`
-
 Full setup, ports, test commands, and troubleshooting: [Local Development Guide](docs/developer/local-development.md).
 
 ## Architecture At a Glance
-
-CareBridge runs today as a local-first microservices system with SQL Server, RabbitMQ, and a React frontend. The target cloud shape is Azure + AKS, but the service boundaries and workflow orchestration already exist locally.
-
-```mermaid
-flowchart LR
-    UI[React UI] --> BFF[Gateway / BFF]
-    BFF --> CORE[Domain Services]
-    CORE --> SQL[(SQL Server)]
-    CORE --> MQ[(RabbitMQ)]
-    MQ --> RPT[Reporting Service]
-    MQ --> AUD[Audit Service]
-```
-
-Key implementation themes:
-
-- Event-driven workflows across bounded contexts
-- CQRS-style read models for dashboard and timeline
-- Immutable audit logging for domain events
-- Structured logging, OpenTelemetry tracing, health probes, and HTTP resilience
 
 Architecture details: [Solution Architecture](docs/architecture/solution-architecture.md), [Service Catalog](docs/architecture/service-catalog.md), and [API and Event Contracts](docs/architecture/api-and-event-contracts.md).
 
