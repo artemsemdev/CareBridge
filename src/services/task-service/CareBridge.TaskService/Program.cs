@@ -3,6 +3,7 @@ using CareBridge.Shared.Contracts.Enums;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 using CareBridge.TaskService.Data;
 using CareBridge.TaskService.Entities;
 using CareBridge.TaskService.Handlers;
@@ -13,8 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddCareBridgeDefaults();
 
 // Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
+var taskDbConnectionString = builder.Configuration.GetConnectionString("TaskDb")!;
 builder.Services.AddDbContext<TaskDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("TaskDb")));
+    options.UseSqlServer(taskDbConnectionString, sql => sql.EnableRetryOnFailure()));
+
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitPort = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672");
+var rabbitUser = builder.Configuration["RabbitMQ:User"] ?? "guest";
+var rabbitPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+builder.Services.AddHealthChecks()
+    .AddCareBridgeSqlServer(taskDbConnectionString)
+    .AddCareBridgeRabbitMQ(rabbitHost, rabbitPort, rabbitUser, rabbitPassword);
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 builder.Services.AddScoped<AlertRaisedHandler>();

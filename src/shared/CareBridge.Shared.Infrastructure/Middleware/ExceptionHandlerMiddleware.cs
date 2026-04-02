@@ -49,6 +49,7 @@ public class ExceptionHandlerMiddleware
             ValidationException => (StatusCodes.Status400BadRequest, "Validation Error"),
             KeyNotFoundException => (StatusCodes.Status404NotFound, "Not Found"),
             InvalidOperationException => (StatusCodes.Status409Conflict, "Conflict"),
+            _ when exception.GetType().Name == "DbUpdateException" => (StatusCodes.Status409Conflict, "Data Conflict"),
             _ => (StatusCodes.Status500InternalServerError, "Internal Server Error")
         };
 

@@ -4,6 +4,7 @@ using CareBridge.NotificationService.Handlers;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +12,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddCareBridgeDefaults();
 
 // Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
+var notificationDbConnectionString = builder.Configuration.GetConnectionString("NotificationDb")!;
 builder.Services.AddDbContext<NotificationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("NotificationDb")));
+    options.UseSqlServer(notificationDbConnectionString, sql => sql.EnableRetryOnFailure()));
+
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitPort = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672");
+var rabbitUser = builder.Configuration["RabbitMQ:User"] ?? "guest";
+var rabbitPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+builder.Services.AddHealthChecks()
+    .AddCareBridgeSqlServer(notificationDbConnectionString)
+    .AddCareBridgeRabbitMQ(rabbitHost, rabbitPort, rabbitUser, rabbitPassword);
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 

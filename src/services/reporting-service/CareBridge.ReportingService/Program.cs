@@ -3,10 +3,18 @@ using CareBridge.ReportingService.Store;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
+
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitPort = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672");
+var rabbitUser = builder.Configuration["RabbitMQ:User"] ?? "guest";
+var rabbitPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+builder.Services.AddHealthChecks()
+    .AddCareBridgeRabbitMQ(rabbitHost, rabbitPort, rabbitUser, rabbitPassword);
 
 // HIPAA Minimum Necessary: Reporting Service stores aggregate counts and summary data only.
 // Individual patient records are referenced by ID — no patient names stored in dashboard metrics.
