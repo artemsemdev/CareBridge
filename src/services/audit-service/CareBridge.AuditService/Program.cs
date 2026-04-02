@@ -6,10 +6,18 @@ using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Contracts.Serialization;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddCareBridgeDefaults();
+
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitPort = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672");
+var rabbitUser = builder.Configuration["RabbitMQ:User"] ?? "guest";
+var rabbitPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+builder.Services.AddHealthChecks()
+    .AddCareBridgeRabbitMQ(rabbitHost, rabbitPort, rabbitUser, rabbitPassword);
 
 // Audit: In-memory store for local development. Cosmos DB in production.
 // Append-only — IAuditStore has no Update or Delete methods by design.

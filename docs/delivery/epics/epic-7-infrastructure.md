@@ -39,12 +39,12 @@ The portfolio story includes Azure cloud architecture, AKS, Terraform, CI/CD, an
 
 ## Exit Criteria
 
-v0.6 (Hardened):
-- [ ] All services have /startup, /ready, /healthz endpoints
-- [ ] Correlation IDs propagate through HTTP and events end-to-end
-- [ ] Structured JSON logging is consistent across all services
-- [ ] OpenTelemetry traces are emitted
-- [ ] Circuit breakers protect inter-service HTTP calls
+v0.6 (Hardened) — COMPLETED 2026-04-02:
+- [x] All services have /startup, /ready, /healthz endpoints
+- [x] Correlation IDs propagate through HTTP and events end-to-end
+- [x] Structured JSON logging is consistent across all services
+- [x] OpenTelemetry traces are emitted
+- [x] Circuit breakers protect inter-service HTTP calls
 
 v0.7 (Cloud-Deployed):
 - [ ] Terraform provisions AKS, Azure SQL, Cosmos DB, Service Bus, ACR
@@ -153,11 +153,13 @@ Health check registrations per service:
 | BFF / Gateway | None (stateless) |
 
 **Acceptance criteria:**
-- [ ] All services respond to `/healthz`, `/ready`, `/startup`
-- [ ] Readiness probe fails if a critical dependency is unavailable
-- [ ] Liveness probe always returns 200 if the process is running
-- [ ] Startup probe returns 503 during initialization, 200 after
-- [ ] Health endpoints do not require authentication
+- [x] All services respond to `/healthz`, `/ready`, `/startup`
+- [x] Readiness probe fails if a critical dependency is unavailable
+- [x] Liveness probe always returns 200 if the process is running
+- [x] Startup probe returns 503 during initialization, 200 after
+- [x] Health endpoints do not require authentication
+
+**Status:** COMPLETED 2026-04-02. SQL Server health checks added to 7 services, RabbitMQ health checks added to 6 services, via shared `HealthCheckBuilderExtensions`.
 
 **Dependencies:** All services built (Epics 1-6)
 
@@ -194,11 +196,13 @@ Across all services:
 - Add request/response logging at Debug level (method, path, status code, duration)
 
 **Acceptance criteria:**
-- [ ] All services output structured JSON logs
-- [ ] Every log entry includes correlationId, service name, and timestamp
-- [ ] No PII in log output (verify by searching for patient name patterns)
-- [ ] Request logging shows method, path, status code, and duration at Debug level
-- [ ] Log levels are consistent across services
+- [x] All services output structured JSON logs
+- [x] Every log entry includes correlationId, service name, and timestamp
+- [x] No PII in log output (verify by searching for patient name patterns)
+- [x] Request logging shows method, path, status code, and duration at Debug level
+- [x] Log levels are consistent across services
+
+**Status:** COMPLETED 2026-04-02. Serilog `RenderedCompactJsonFormatter` replaces plain-text console output. `Service` property enriched from config. `UseSerilogRequestLogging()` added at Debug level. Log level overrides for Microsoft.AspNetCore and EF Core set to Warning.
 
 **Dependencies:** All services built
 
@@ -234,12 +238,14 @@ Verify:
 - Events consumed from RabbitMQ restore trace context
 
 **Acceptance criteria:**
-- [ ] Console output shows trace spans for HTTP requests
-- [ ] BFF → backend service calls show parent-child span relationship
-- [ ] Trace context propagates through RabbitMQ events (publish → consume)
-- [ ] EF Core queries appear as spans (if enabled)
-- [ ] Service name appears in each span
-- [ ] OpenTelemetry can be disabled via configuration flag
+- [x] Console output shows trace spans for HTTP requests
+- [x] BFF → backend service calls show parent-child span relationship
+- [x] Trace context propagates through RabbitMQ events (publish → consume)
+- [x] EF Core queries appear as spans (if enabled)
+- [x] Service name appears in each span
+- [x] OpenTelemetry can be disabled via configuration flag
+
+**Status:** COMPLETED 2026-04-02. OpenTelemetry SDK with ASP.NET Core, HttpClient, and EF Core instrumentation. Console exporter via `OpenTelemetry:ConsoleExporter`. Disable via `OpenTelemetry:Enabled = false`. W3C TraceContext propagation by default.
 
 **Dependencies:** All services built
 
@@ -271,12 +277,14 @@ Configuration:
 - Default values suitable for local development
 
 **Acceptance criteria:**
-- [ ] HTTP calls to backend services use retry + circuit breaker policies
-- [ ] After 5 consecutive failures, circuit opens and requests fail fast (no HTTP call made)
-- [ ] Circuit half-opens after 30 seconds and allows a test request
-- [ ] Open circuit returns 503 with descriptive error
-- [ ] Resilience parameters configurable via appsettings
-- [ ] Normal operation is unaffected (no performance overhead in happy path)
+- [x] HTTP calls to backend services use retry + circuit breaker policies
+- [x] After 5 consecutive failures, circuit opens and requests fail fast (no HTTP call made)
+- [x] Circuit half-opens after 30 seconds and allows a test request
+- [x] Open circuit returns 503 with descriptive error
+- [x] Resilience parameters configurable via appsettings
+- [x] Normal operation is unaffected (no performance overhead in happy path)
+
+**Status:** COMPLETED 2026-04-02. `Microsoft.Extensions.Http.Resilience` standard resilience handler applied to all 10 named HttpClients (8 Gateway, 1 CareGap, 1 CarePlan). 2 retries with exponential backoff, circuit breaker (50% failure rate, 30s sampling, 30s break), 10s attempt timeout, 30s total timeout. Gateway returns 503 on `BrokenCircuitException`.
 
 **Dependencies:** C2-07 (BFF exists)
 
@@ -320,11 +328,13 @@ Systematic review across all services:
    - Alert referencing a non-existent observation
 
 **Acceptance criteria:**
-- [ ] No unhandled exceptions in event handlers (all have try-catch with logging)
-- [ ] EF Core retry on transient failure is enabled for all DbContexts
-- [ ] Idempotency checks use database constraints (not just code checks) to handle race conditions
-- [ ] Foreign key-like validations return appropriate errors (not 500)
-- [ ] All edge cases identified have either a fix or a documented decision to accept the behavior
+- [x] No unhandled exceptions in event handlers (all have try-catch with logging)
+- [x] EF Core retry on transient failure is enabled for all DbContexts
+- [x] Idempotency checks use database constraints (not just code checks) to handle race conditions
+- [x] Foreign key-like validations return appropriate errors (not 500)
+- [x] All edge cases identified have either a fix or a documented decision to accept the behavior
+
+**Status:** COMPLETED 2026-04-02. `EnableRetryOnFailure()` added to all 7 DbContext SQL Server configurations. `DbUpdateException` mapped to 409 Conflict in `ExceptionHandlerMiddleware`. Input length validation added to Case Service (PatientId, PatientName, DiagnosisCode, DiagnosisDescription). Existing database unique constraints (Observation.IdempotencyKey, CarePlan.CaseId, Task.AlertId) already handle race conditions. Event handlers delegate error handling to `EventConsumerBackgroundService` which has NACK/retry with max-retry dead-lettering.
 
 **Dependencies:** All services built
 

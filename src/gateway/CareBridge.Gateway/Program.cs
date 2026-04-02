@@ -3,6 +3,7 @@ using System.Security.Claims;
 using CareBridge.Gateway;
 using CareBridge.Shared.Infrastructure.Correlation;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.Resilience;
 using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,50 +25,42 @@ var auditServiceUrl = services["AuditService"] ?? "http://localhost:5080";
 builder.Services.AddHttpClient("CaseService", client =>
 {
     client.BaseAddress = new Uri(caseServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("CarePlanService", client =>
 {
     client.BaseAddress = new Uri(carePlanServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("ObservationService", client =>
 {
     client.BaseAddress = new Uri(observationServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("CareGapEngine", client =>
 {
     client.BaseAddress = new Uri(careGapEngineUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("TaskService", client =>
 {
     client.BaseAddress = new Uri(taskServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("AppointmentService", client =>
 {
     client.BaseAddress = new Uri(appointmentServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("ReportingService", client =>
 {
     client.BaseAddress = new Uri(reportingServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddHttpClient("AuditService", client =>
 {
     client.BaseAddress = new Uri(auditServiceUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-}).AddHttpMessageHandler<CorrelationIdForwardingHandler>();
+}).AddHttpMessageHandler<CorrelationIdForwardingHandler>().AddCareBridgeResilience();
 
 builder.Services.AddScoped<CorrelationIdForwardingHandler>();
 
@@ -296,7 +289,11 @@ static async Task<IResult> ProxyAsync(
     }
     catch (HttpRequestException)
     {
-        return Results.Problem($"Unable to reach the upstream service.", statusCode: 502, title: "Bad Gateway");
+        return Results.Problem("Unable to reach the upstream service.", statusCode: 502, title: "Bad Gateway");
+    }
+    catch (Polly.CircuitBreaker.BrokenCircuitException)
+    {
+        return Results.Problem("Service temporarily unavailable. The circuit breaker is open.", statusCode: 503, title: "Service Unavailable");
     }
 
     var body = await response.Content.ReadAsStringAsync();

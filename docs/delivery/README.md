@@ -1,7 +1,7 @@
 # Delivery Dashboard
 
 **Status:** Living document — updated after each completed issue
-**Last updated:** 2026-04-01
+**Last updated:** 2026-04-02
 **Scope:** CareBridge MVP — 52 issues across 7 epics, delivered in 8 waves
 
 ---
@@ -10,23 +10,23 @@
 
 ```text
 
-  ███████████████░░░░░  75% COMPLETE  ·  39 of 52 issues delivered
+  ████████████████████░  85% COMPLETE  ·  44 of 52 issues delivered
 
 ```
 
 | Metric | Value |
 |--------|------:|
-| Issues completed | **39** / 52 |
+| Issues completed | **44** / 52 |
 | Epics completed | **6** / 7 |
-| Waves fully completed | **5** / 8 |
-| Current wave | Wave 5 — Dashboard & Audit (9 / 9) DONE |
+| Waves fully completed | **6** / 8 |
+| Current wave | Wave 6 — Hardening (5 / 5) DONE |
 | Unit tests passing | **140** |
-| Next up | `H-01` Health endpoints across all services |
+| Next up | `I7-01` Multi-stage Dockerfiles for all services |
 
 ```mermaid
 pie title Issue Completion
-    "Completed (39)" : 39
-    "Remaining (13)" : 13
+    "Completed (44)" : 44
+    "Remaining (8)" : 8
 ```
 
 ---
@@ -39,7 +39,7 @@ Wave 2 · Case Intake      █████████████████�
 Wave 3 · Monitoring       ████████████████████  7/7   100%  DONE
 Wave 4 · Coordinator      ████████████████████  8/8   100%  DONE
 Wave 5 · Dashboard/Audit  ████████████████████  9/9   100%  DONE
-Wave 6 · Hardening        ░░░░░░░░░░░░░░░░░░░░  0/5     0%  PLANNED
+Wave 6 · Hardening        ████████████████████  5/5   100%  DONE
 Wave 7 · Cloud Deploy     ░░░░░░░░░░░░░░░░░░░░  0/6     0%  PLANNED
 Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░░░░  0/2     0%  PLANNED
 ```
@@ -56,21 +56,11 @@ Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░�
 | 4 | Coordinator Workflows | 8 / 8 (100%) | Done |
 | 5 | Dashboard, Timeline & Reporting | 6 / 6 (100%) | Done |
 | 6 | Audit & Compliance | 3 / 3 (100%) | Done |
-| 7 | Infrastructure & Cloud Deployment | 0 / 13 (0%) | Planned |
+| 7 | Infrastructure & Cloud Deployment | 5 / 13 (38%) | In Progress |
 
 ---
 
 ## Remaining Work
-
-### Hardening & Observability — 5 issues · Wave 6
-
-| ID | Issue | Scope |
-|----|-------|-------|
-| H-01 | Health endpoints across all services | /startup, /ready, /healthz for every service |
-| H-02 | Structured JSON logging standardization | Consistent format with correlation IDs |
-| H-03 | OpenTelemetry distributed tracing | Basic trace emission across service calls |
-| H-04 | Circuit breakers for inter-service HTTP | Resilience on critical communication paths |
-| H-05 | Error handling review and edge case hardening | Systematic audit of error paths |
 
 ### Cloud Deployment — 6 issues · Wave 7
 
@@ -92,6 +82,20 @@ Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░�
 
 ---
 
+## Recently Completed
+
+### Hardening & Observability — 5 issues · Wave 6 · DONE 2026-04-02
+
+| ID | Issue | What was delivered |
+|----|-------|-------------------|
+| H-01 | Health endpoints | SQL/RabbitMQ readiness checks on all services |
+| H-02 | Structured JSON logging | Serilog RenderedCompactJsonFormatter with service name enrichment |
+| H-03 | OpenTelemetry tracing | ASP.NET Core + HttpClient + EF Core instrumentation |
+| H-04 | Circuit breakers | Microsoft.Extensions.Http.Resilience on all 10 HttpClients |
+| H-05 | Error handling hardening | EnableRetryOnFailure, input validation, DbUpdateException handling |
+
+---
+
 ## Milestone Tracker
 
 | Version | Milestone | Status |
@@ -101,7 +105,7 @@ Wave 8 · Demo-Ready       ░░░░░░░░░░░░░░░░░�
 | v0.3 | Monitoring Loop — observations in, alerts out, visible in UI | **Done** |
 | v0.4 | Operational Workflows — tasks, appointments, notifications | **Done** |
 | v0.5 | Dashboard & Audit — CQRS proven, full UI, immutable audit trail | **Done** |
-| v0.6 | Hardened — observability and resilience patterns | Planned |
+| v0.6 | Hardened — observability and resilience patterns | **Done** |
 | v0.7 | Cloud-Deployed — running on Azure AKS | Planned |
 | v1.0 | Demo-Ready — portfolio release | Planned |
 
@@ -118,10 +122,10 @@ flowchart LR
         E4[Coordinator]
         E5[Dashboard]
         E6[Audit]
+        H[H-01..05 Hardening]
     end
 
     subgraph Planned
-        H[H-01..05 Hardening]
         D1[I7-01 Dockerfiles]
         D2[I7-02 Helm]
         T1[I7-03 Terraform Core]
@@ -141,8 +145,8 @@ flowchart LR
     classDef done fill:#d9f99d,stroke:#3f6212,color:#111827;
     classDef later fill:#e5e7eb,stroke:#6b7280,color:#111827;
 
-    class E1,E2,E3,E4,E5,E6 done;
-    class H,D1,D2,T1,T2,CI,CD,G,W later;
+    class E1,E2,E3,E4,E5,E6,H done;
+    class D1,D2,T1,T2,CI,CD,G,W later;
 ```
 
 ---
@@ -161,6 +165,6 @@ flowchart LR
 ## Counting Rules
 
 - Issue counts come from the 52-item execution plan in [delivery-plan.md](delivery-plan.md).
-- Completed work includes Epics 1–6 (39 issues).
-- Remaining work includes Epic 7 (13 issues).
+- Completed work includes Epics 1–6 plus Wave 6 hardening (44 issues).
+- Remaining work includes Epic 7 Wave 7–8 (8 issues).
 - The documentation follow-up in Wave 8 is tracked separately and not counted in the 52-issue total.

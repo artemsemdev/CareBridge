@@ -5,6 +5,8 @@ using CareBridge.Shared.Contracts.Enums;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
+using CareBridge.Shared.Infrastructure.Resilience;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +14,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddCareBridgeDefaults();
 
 // Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
+var carePlanDbConnectionString = builder.Configuration.GetConnectionString("CarePlanDb")!;
 builder.Services.AddDbContext<CarePlanDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CarePlanDb")));
+    options.UseSqlServer(carePlanDbConnectionString, sql => sql.EnableRetryOnFailure()));
+
+var rabbitHost = builder.Configuration["RabbitMQ:Host"] ?? "localhost";
+var rabbitPort = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672");
+var rabbitUser = builder.Configuration["RabbitMQ:User"] ?? "guest";
+var rabbitPassword = builder.Configuration["RabbitMQ:Password"] ?? "guest";
+builder.Services.AddHealthChecks()
+    .AddCareBridgeSqlServer(carePlanDbConnectionString)
+    .AddCareBridgeRabbitMQ(rabbitHost, rabbitPort, rabbitUser, rabbitPassword);
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 builder.Services.AddScoped<CaseCreatedHandler>();
@@ -24,8 +35,7 @@ var careGapEngineUrl = builder.Configuration["Services:CareGapEngine"] ?? "http:
 builder.Services.AddHttpClient("CareGapEngine", client =>
 {
     client.BaseAddress = new Uri(careGapEngineUrl);
-    client.Timeout = TimeSpan.FromSeconds(10);
-});
+}).AddCareBridgeResilience();
 
 builder.Services.AddSingleton(new EventConsumerOptions
 {

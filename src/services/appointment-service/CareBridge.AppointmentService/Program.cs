@@ -5,6 +5,7 @@ using CareBridge.Shared.Contracts.Enums;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddCareBridgeDefaults();
 
 // Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
+var appointmentDbConnectionString = builder.Configuration.GetConnectionString("AppointmentDb")!;
 builder.Services.AddDbContext<AppointmentDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("AppointmentDb")));
+    options.UseSqlServer(appointmentDbConnectionString, sql => sql.EnableRetryOnFailure()));
+
+builder.Services.AddHealthChecks()
+    .AddCareBridgeSqlServer(appointmentDbConnectionString);
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 

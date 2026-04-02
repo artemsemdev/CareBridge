@@ -5,6 +5,7 @@ using CareBridge.Shared.Contracts.Enums;
 using CareBridge.Shared.Contracts.Events;
 using CareBridge.Shared.Infrastructure.Eventing;
 using CareBridge.Shared.Infrastructure.Extensions;
+using CareBridge.Shared.Infrastructure.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddCareBridgeDefaults();
 
 // Security: Connection string loaded from configuration (env var or Key Vault in production). Never hardcode credentials.
+var caseDbConnectionString = builder.Configuration.GetConnectionString("CaseDb")!;
 builder.Services.AddDbContext<CaseDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("CaseDb")));
+    options.UseSqlServer(caseDbConnectionString, sql => sql.EnableRetryOnFailure()));
+
+builder.Services.AddHealthChecks()
+    .AddCareBridgeSqlServer(caseDbConnectionString);
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
 
@@ -29,14 +34,22 @@ app.MapPost("/api/v1/cases", async (CreateCaseRequest request, CaseDbContext db,
 {
     if (string.IsNullOrWhiteSpace(request.PatientId))
         return Results.Problem("PatientId is required.", statusCode: 400, title: "Validation Error");
+    if (request.PatientId.Length > 50)
+        return Results.Problem("PatientId cannot exceed 50 characters.", statusCode: 400, title: "Validation Error");
     if (string.IsNullOrWhiteSpace(request.PatientName))
         return Results.Problem("PatientName is required.", statusCode: 400, title: "Validation Error");
+    if (request.PatientName.Length > 200)
+        return Results.Problem("PatientName cannot exceed 200 characters.", statusCode: 400, title: "Validation Error");
     if (request.DischargeDate > DateTimeOffset.UtcNow)
         return Results.Problem("DischargeDate must not be in the future.", statusCode: 400, title: "Validation Error");
     if (string.IsNullOrWhiteSpace(request.DiagnosisCode) || !System.Text.RegularExpressions.Regex.IsMatch(request.DiagnosisCode, @"^[A-Za-z0-9.]+$"))
         return Results.Problem("DiagnosisCode is required and must contain only letters, digits, and dots.", statusCode: 400, title: "Validation Error");
+    if (request.DiagnosisCode.Length > 20)
+        return Results.Problem("DiagnosisCode cannot exceed 20 characters.", statusCode: 400, title: "Validation Error");
     if (string.IsNullOrWhiteSpace(request.DiagnosisDescription))
         return Results.Problem("DiagnosisDescription is required.", statusCode: 400, title: "Validation Error");
+    if (request.DiagnosisDescription.Length > 500)
+        return Results.Problem("DiagnosisDescription cannot exceed 500 characters.", statusCode: 400, title: "Validation Error");
 
     var now = DateTimeOffset.UtcNow;
     var entity = new CaseEntity
