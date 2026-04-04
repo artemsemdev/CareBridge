@@ -25,42 +25,42 @@
 
 ## 2. Delivery Stages
 
-### Stage 0: Foundation (estimated: ~1 week) — COMPLETED 2026-03-28
+### Stage 0: Foundation (estimated: ~1 week) — COMPLETED
 Set up the solution structure, shared libraries, local development environment, and the first service skeleton. Nothing is shippable yet, but everything after this goes faster.
 
 **Exit criteria:** `docker-compose up` starts local infrastructure. A skeleton .NET service builds, runs, and responds to a health check. Shared contracts compile. Database migration tooling works.
 
 **Status:** All 6 issues (F1-01 through F1-06) implemented. Solution builds with 0 warnings/errors. 19 unit tests pass (16 contract serialization + 3 case service). Case Service skeleton wired with EF Core, RabbitMQ event publishing, health checks, correlation ID middleware, and structured logging.
 
-### Stage 1: Case Intake Pipeline (estimated: ~1.5 weeks) — COMPLETED 2026-03-29
+### Stage 1: Case Intake Pipeline (estimated: ~1.5 weeks) — COMPLETED
 Discharge intake creates a case. Care Plan Service consumes the event and activates a plan with milestones. The BFF exposes this to a minimal React page. This is the first vertical slice: data flows from API to database to event bus to a second service and back to the UI.
 
 **Exit criteria:** POST a synthetic discharge bundle via the BFF. Case appears in the database. CaseCreated event fires. Care Plan Service receives it, instantiates a plan with milestones. React page lists cases and shows case detail with care plan.
 
 **Status:** All 9 issues (C2-01 through C2-09) implemented. Case Service updated with string PatientId, cursor-based pagination, PATCH status endpoint, and best-effort CaseUpdated event publishing. Care Plan Service implemented with EF Core domain model, "General Post-Discharge" template (5 milestones), idempotent CaseCreated handler, and REST API. API Gateway implemented with named HttpClients, CorrelationIdForwardingHandler, mock auth middleware, and 502/504 error handling. db-migrator extended for carebridge-careplan-db. React frontend built with Tailwind CSS, React Router, React Query, application shell, case list page, and case detail page with care plan view. .NET solution builds clean, 19 unit tests pass, frontend TypeScript compiles.
 
-### Stage 2: Monitoring and Alerting Loop (estimated: ~1.5 weeks) — COMPLETED 2026-03-30
+### Stage 2: Monitoring and Alerting Loop (estimated: ~1.5 weeks) — COMPLETED
 Observations flow in and get evaluated. Abnormal readings and missed milestones generate alerts. This closes the core detection loop.
 
 **Exit criteria:** POST an observation. It is validated, stored, and published. Care-Gap Engine evaluates it and generates an alert for abnormal values. Scheduled scan detects missed milestones. Alerts are visible in the UI.
 
 **Status:** All 7 issues (M3-01 through M3-07) implemented. Observation Service wired with EF Core, idempotency-key dedup, value/unit validation per type, cursor-based pagination, and ObservationReceived event publishing. Care-Gap Engine implemented with threshold evaluation (ThresholdEvaluator static class — all types except weight change which is deferred), ObservationReceived event handler, MilestoneScanBackgroundService (configurable interval, dedup by SourceEventId), and full alert CRUD + acknowledge/resolve lifecycle API. AlertStatus enum and Title/SourceEventId fields added to shared contracts. Care Plan Service extended to support status-based list query for milestone scanner. DB migrator extended for carebridge-observation-db and carebridge-caregap-db. Gateway extended with ObservationService and CareGapEngine HTTP clients and 6 new BFF proxy endpoints. React frontend updated with ObservationResponse and AlertResponse types, real observation/alert display replacing placeholder cards, AlertsPage with severity/type filters, and open-alert count badge in sidebar navigation. 38 unit tests pass (16 contract + 3 case service + 19 threshold evaluation). Weight-change detection deferred (requires history comparison — documented in epic).
 
-### Stage 3: Coordinator Workflows (estimated: ~1.5 weeks) — COMPLETED 2026-03-31
+### Stage 3: Coordinator Workflows (estimated: ~1.5 weeks) — COMPLETED
 Alerts automatically create tasks. Coordinators manage tasks and schedule appointments. Completing a task or appointment can satisfy a care plan milestone. Notifications are logged (no real delivery channels yet).
 
 **Exit criteria:** Alert generates a task automatically. Task lifecycle works (open, in-progress, completed). Appointments can be created and tracked. Completing relevant work updates milestone status. Notifications appear in the log.
 
 **Status:** All 8 issues (W4-01 through W4-08) implemented. Task Service wired with EF Core, AlertRaised event handler for automatic task creation, severity-to-priority mapping, idempotent one-task-per-alert via unique filtered index, CRUD/list/filter/pagination endpoints, valid state transitions (Open→InProgress→Completed/Deferred), CompletedAt/CompletedBy handling, and TaskCreated/TaskCompleted event publishing. Appointment Service implemented with full lifecycle (Proposed→Booked→Completed/Canceled/NoShow), AppointmentBooked/AppointmentCompleted/AppointmentMissed events, and overdue detection. Notification Service consumes AlertRaised (Critical/High→Email+InApp, Medium→InApp), AppointmentBooked (InApp), AppointmentMissed (Email+InApp), and MilestoneCompleted (InApp), persists notifications, logs full content at Information level, and publishes NotificationSent events. Care Plan Service extended with TaskCompleted handler (looks up alert via CareGap Engine API, completes MissedMilestone milestones) and AppointmentCompleted handler (completes Follow-Up Appointment milestone). Gateway extended with TaskService and AppointmentService HTTP clients and 7 new BFF proxy endpoints. React frontend updated with TaskResponse/AppointmentResponse types, Tasks page with status/priority filters and create task modal, task section on case detail page with inline create form and status action buttons, appointments section on case detail page with create form and action buttons, overdue booked appointment highlighting, and open-task count badge in sidebar navigation. DB migrator extended for carebridge-task-db, carebridge-appointment-db, and carebridge-notification-db. 69 unit tests pass (18 contract serialization + 3 case service + 19 threshold evaluation + 18 task service + 11 appointment service).
 
-### Stage 4: Dashboard, Timeline, and Reporting (estimated: ~1.5 weeks) — COMPLETED 2026-03-31
+### Stage 4: Dashboard, Timeline, and Reporting (estimated: ~1.5 weeks) — COMPLETED
 Reporting Service consumes all domain events and builds denormalized read models. The operational dashboard and case timeline come to life. This is where the CQRS pattern pays off.
 
 **Exit criteria:** Operational dashboard shows alert counts, overdue tasks, workload distribution. Case timeline shows a chronological view of all events for a patient. Dashboard queries hit Cosmos DB read models (or in-memory equivalent locally), not the transactional databases.
 
 **Status:** All 6 issues (D5-01 through D5-06) implemented. Reporting Service wired with in-memory read model store (`IReadModelStore` / `InMemoryReadModelStore`), event consumers for all 14 domain event types, EventId-based deduplication, and timestamp-based timeline ordering. Dashboard summary API (`GET /api/v1/reports/dashboard`) returns active case count, alerts by status/severity, open/overdue task counts, pending appointments, recent cases (last 10), and top alerts (top 10 by severity). Case timeline API (`GET /api/v1/reports/timeline/{caseId}`) returns paginated chronological entries with category filtering. Gateway extended with ReportingService HTTP client and 2 BFF proxy endpoints. React frontend updated with operational dashboard page (summary cards, alert queue, recent cases, manual refresh, loading skeletons) replacing placeholder, and case timeline component (vertical timeline with category-specific icons/colors, sort toggle, category filter chips, relative timestamps with hover, load-more pagination) replacing placeholder on case detail page. 96 unit tests pass (18 contract + 3 case + 19 threshold + 18 task + 11 appointment + 27 reporting service).
 
-### Stage 5: Audit and Compliance (estimated: ~1 week) — COMPLETED 2026-04-01
+### Stage 5: Audit and Compliance (estimated: ~1 week) — COMPLETED
 Audit Service captures all domain events into an immutable append-only log. Audit trail is queryable from the UI.
 
 **Exit criteria:** Every state change across all services produces an audit event. Audit log is immutable and queryable by case, actor, date range, and action type. Audit view works in the React UI.
